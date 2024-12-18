@@ -16,9 +16,9 @@ func Init() error {
 	// Ortam değişkenlerinden MongoDB URI'sini al
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
-		mongoURI = "mongodb://localhost:27017"
-		log.Println("Varsayılan MongoDB URI kullanılıyor:", mongoURI)
+		log.Fatal("MONGO_URI ortam değişkeni ayarlanmamış")
 	}
+
 	// MongoDB istemcisi oluştur
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
 	if err != nil {
