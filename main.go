@@ -1,19 +1,25 @@
 package main
 
 import (
+	"admin-panel/configs"
 	"admin-panel/middlewares"
 	"admin-panel/routes"
 	"admin-panel/services"
-	"context"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	// .env dosyasını yükle
+	err := godotenv.Load()
+	if err != nil {
+		log.Println(".env dosyası yüklenemedi, ortam değişkenleri kullanılacak")
+	}
+}
 
 func main() {
 
@@ -21,27 +27,17 @@ func main() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	// MongoDB bağlantısını başlat
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	err = client.Connect(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
+	configs.Init()
 
 	// Servisleri başlat
-	services.InitUserService(client)
-	services.InitPostService(client)
-	services.InitPageService(client) // Sayfa servisini başlat
-	services.InitCategoryService(client)
-	services.InitTagService(client)
-	services.InitMediaService(client) // Medya servisini başlat
+	services.InitUserService(configs.DB)
+	services.InitPostService(configs.DB)
+	services.InitPageService(configs.DB)
+	services.InitCategoryService(configs.DB)
+	services.InitTagService(configs.DB)
+	services.InitMediaService(configs.DB)
+
+	log.Println("Tüm servisler başarıyla başlatıldı.")
 
 	// Gin başlat
 	r := gin.Default()
