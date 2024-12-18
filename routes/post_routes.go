@@ -14,6 +14,7 @@ func PostRoutes(router *gin.Engine) {
 	{
 		posts.POST("/create", controllers.CreatePostHandler)
 		posts.GET("/", controllers.GetAllPostsHandler)
-		posts.GET("/filter", controllers.GetFilteredPostsHandler) // Filtrelenmiş postlar
+		posts.GET("/filter", controllers.GetFilteredPostsHandler)       // Filtrelenmiş postlar
+		posts.GET("/lang/:lang", controllers.GetPostsByLanguageHandler) // Dil bazlı içerik listeleme
 	}
 }
