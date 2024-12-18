@@ -12,7 +12,7 @@ import (
 
 var DB *mongo.Client
 
-func ConnectDB() *mongo.Client {
+func Init() error {
 	// Ortam değişkenlerinden MongoDB URI'sini al
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
@@ -41,9 +41,7 @@ func ConnectDB() *mongo.Client {
 	}
 
 	log.Println("MongoDB bağlantısı başarılı")
-	return client
-}
+	DB = client
 
-func Init() {
-	DB = ConnectDB()
+	return nil
 }

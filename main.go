@@ -5,9 +5,11 @@ import (
 	"admin-panel/middlewares"
 	"admin-panel/routes"
 	"admin-panel/services"
+	"context"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -27,7 +29,19 @@ func main() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	configs.Init()
+	// Veritabanı bağlantısını başlat
+	if err := configs.Init(); err != nil {
+		log.Fatalf("Veritabanı başlatılamadı: %v", err)
+	}
+
+	// Uygulama sonlandığında bağlantıyı kapat
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	defer func() {
+		if err := configs.DB.Disconnect(ctx); err != nil {
+			log.Fatalf("MongoDB bağlantısı kapatılamadı: %v", err)
+		}
+	}()
 
 	// Servisleri başlat
 	services.InitUserService(configs.DB)
