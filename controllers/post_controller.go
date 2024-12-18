@@ -5,6 +5,7 @@ import (
 	"admin-panel/services" // Post servislerini import ettik
 	"admin-panel/utils"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,16 +21,31 @@ func CreatePostHandler(c *gin.Context) {
 
 	// Varsayılan slug oluşturma
 	if post.Slug == "" {
-		post.Slug = utils.GenerateSlug(post.Localizations["en"].Title) // İngilizce başlık üzerinden slug oluşturuluyor
+		if localization, ok := post.Localizations["en"]; ok {
+			post.Slug = utils.GenerateSlug(localization.Title) // İngilizce başlık üzerinden slug oluşturuluyor
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "English title is required for slug generation"})
+			return
+		}
 	}
 
-	_, err := services.CreatePost(post)
+	// Varsayılan durum
+	if post.Status == "" {
+		post.Status = "draft"
+	}
+
+	// Zaman damgaları
+	post.CreatedAt = time.Now()
+	post.UpdatedAt = time.Now()
+
+	// Veritabanına kaydet
+	result, err := services.CreatePost(post)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create post"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Post created successfully"})
+	c.JSON(http.StatusOK, result)
 }
 
 // GetAllPostsHandler handles retrieving all posts
@@ -73,24 +89,34 @@ func GetFilteredPostsHandler(c *gin.Context) {
 
 func GetPostsByLanguageHandler(c *gin.Context) {
 	lang := c.Param("lang") // URL parametresinden dil kodu alınır (örnek: "en", "tr")
+
+	// Tüm gönderileri alın
 	posts, err := services.GetAllPosts()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve posts"})
 		return
 	}
 
+	// Dil bazlı gönderileri filtreleyin
 	localizedPosts := []map[string]interface{}{}
 	for _, post := range posts {
+		// Belirtilen dilde içerik var mı kontrol edin
 		if localizedContent, ok := post.Localizations[lang]; ok {
 			localizedPosts = append(localizedPosts, map[string]interface{}{
-				"id":       post.ID,
-				"slug":     post.Slug,
-				"title":    localizedContent.Title,
-				"content":  localizedContent.Content,
-				"status":   post.Status,
-				"category": post.CategoryIDs,
+				"id":         post.ID.Hex(), // MongoDB ObjectID'yi stringe çevirin
+				"slug":       post.Slug,
+				"title":      localizedContent.Title,
+				"content":    localizedContent.Content,
+				"status":     post.Status,
+				"categories": post.CategoryIDs, // Kategorileri döndürün
 			})
 		}
+	}
+
+	// Eğer hiçbir içerik yoksa uygun bir yanıt döndürün
+	if len(localizedPosts) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "No posts found for the specified language"})
+		return
 	}
 
 	c.JSON(http.StatusOK, localizedPosts)

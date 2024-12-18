@@ -22,7 +22,7 @@ func CreatePage(page models.Page) (*mongo.InsertOneResult, error) {
 	defer cancel()
 
 	page.ID = primitive.NewObjectID()
-	page.CreatedAt = time.Now().Unix()
+	page.CreatedAt = time.Now()
 	page.UpdatedAt = page.CreatedAt
 
 	return pageCollection.InsertOne(ctx, page)
