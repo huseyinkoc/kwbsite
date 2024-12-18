@@ -10,7 +10,7 @@ import (
 func TagRoutes(router *gin.Engine) {
 	tags := router.Group("/admin/tags")
 	tags.Use(middlewares.AuthMiddleware())
-	tags.Use(middlewares.AuthorizeRoles("admin", "editor"))
+	tags.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
 	{
 		tags.POST("/create", controllers.CreateTagHandler)
 		tags.GET("/", controllers.GetAllTagsHandler)

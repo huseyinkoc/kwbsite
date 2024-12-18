@@ -10,7 +10,7 @@ import (
 func PostRoutes(router *gin.Engine) {
 	posts := router.Group("/admin/posts")
 	posts.Use(middlewares.AuthMiddleware())
-	posts.Use(middlewares.AuthorizeRoles("admin", "editor"))
+	posts.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
 	{
 		posts.POST("/create", controllers.CreatePostHandler)
 		posts.GET("/", controllers.GetAllPostsHandler)

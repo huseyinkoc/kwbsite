@@ -1,6 +1,7 @@
 package main
 
 import (
+	"admin-panel/middlewares"
 	"admin-panel/routes"
 	"admin-panel/services"
 	"context"
@@ -44,6 +45,9 @@ func main() {
 
 	// Gin başlat
 	r := gin.Default()
+
+	// Logger middleware, tüm rotalar için etkin
+	r.Use(middlewares.LoggerMiddleware())
 
 	// Rotaları yükle
 	routes.AuthRoutes(r)
