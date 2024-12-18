@@ -1,0 +1,18 @@
+package routes
+
+import (
+	"admin-panel/controllers"
+	"admin-panel/middlewares"
+
+	"github.com/gin-gonic/gin"
+)
+
+func TagRoutes(router *gin.Engine) {
+	tags := router.Group("/admin/tags")
+	tags.Use(middlewares.AuthMiddleware())
+	tags.Use(middlewares.AuthorizeRoles("admin", "editor"))
+	{
+		tags.POST("/create", controllers.CreateTagHandler)
+		tags.GET("/", controllers.GetAllTagsHandler)
+	}
+}
