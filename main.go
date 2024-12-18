@@ -5,6 +5,8 @@ import (
 	"admin-panel/services"
 	"context"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +15,11 @@ import (
 )
 
 func main() {
+
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	// MongoDB bağlantısını başlat
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {

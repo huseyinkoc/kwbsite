@@ -5,10 +5,12 @@ import (
 	"admin-panel/services"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 var jwtSecret = []byte("your_secret_key") // JWT için gizli anahtar
@@ -76,6 +78,15 @@ func LoginHandler(c *gin.Context) {
 
 	// Yanıtı döndür
 	log.Printf("Login successful: User %s logged in", input.Username)
+
+	log := logrus.New()
+	log.Out = os.Stdout
+
+	log.WithFields(logrus.Fields{
+		"username": input.Username,
+		"action":   "login",
+	}).Info("User login successful")
+
 	c.JSON(http.StatusOK, gin.H{
 		"token":      tokenString,
 		"csrf_token": csrfToken,
