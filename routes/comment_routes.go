@@ -14,9 +14,9 @@ func RegisterCommentRoutes(router *gin.Engine) {
 	commentGroup.Use(middlewares.AuthMiddleware())
 	commentGroup.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
 	{
-		commentGroup.POST("/", controllers.CreateCommentHandler)
+		commentGroup.POST("/", middlewares.CSRFMiddleware(), controllers.CreateCommentHandler)
 		commentGroup.GET("/post/:postID", controllers.GetCommentsByPostIDHandler)
-		commentGroup.POST("/:commentID/reply", controllers.AddReplyHandler)
-		commentGroup.POST("/:commentID/like", controllers.LikeCommentHandler)
+		commentGroup.POST("/:commentID/reply", middlewares.CSRFMiddleware(), controllers.AddReplyHandler)
+		commentGroup.POST("/:commentID/like", middlewares.CSRFMiddleware(), controllers.LikeCommentHandler)
 	}
 }
