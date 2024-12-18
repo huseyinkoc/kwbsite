@@ -50,6 +50,7 @@ func main() {
 	services.InitCategoryService(configs.DB)
 	services.InitTagService(configs.DB)
 	services.InitMediaService(configs.DB)
+	services.InitCommentService(configs.DB)
 
 	log.Println("Tüm servisler başarıyla başlatıldı.")
 
