@@ -73,6 +73,7 @@ func main() {
 	routes.CategoryRoutes(r)
 	routes.TagRoutes(r)
 	routes.MediaRoutes(r) // Medya rotalarını ekle
+	routes.RegisterSliderRoutes(r)
 
 	r.Static("/uploads", "./uploads")
 
