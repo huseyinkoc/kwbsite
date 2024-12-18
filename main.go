@@ -46,6 +46,22 @@ func main() {
 	// Gin başlat
 	r := gin.Default()
 
+	// Dil ve SEO dostu rotalar
+	r.GET("/:lang/:slug", func(c *gin.Context) {
+		lang := c.Param("lang")
+		slug := c.Param("slug")
+
+		// Burada dil ve slug'a göre içeriği getirme işlemi yapılacak
+		// Örneğin:
+		// content := getContentByLangAndSlug(lang, slug)
+
+		c.JSON(http.StatusOK, gin.H{
+			"language": lang,
+			"slug":     slug,
+			// "content":  content,
+		})
+	})
+
 	// Logger middleware, tüm rotalar için etkin
 	r.Use(middlewares.LoggerMiddleware())
 
