@@ -19,7 +19,7 @@ func CreatePost(post models.Post) (*mongo.InsertOneResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	post.CreatedAt = time.Now().Unix()
+	post.CreatedAt = time.Now()
 	return postCollection.InsertOne(ctx, post)
 }
 

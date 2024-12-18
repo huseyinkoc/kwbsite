@@ -19,7 +19,7 @@ func CreateCategory(category models.Category) (*mongo.InsertOneResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	category.CreatedAt = time.Now().Unix()
+	category.CreatedAt = time.Now()
 	return categoryCollection.InsertOne(ctx, category)
 }
 
