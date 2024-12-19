@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -59,10 +58,12 @@ func ReadRole(ctx context.Context, roleID string) (*models.Role, error) {
 }
 
 // UpdateRole updates a role by its ID
-// UpdateRole updates a role by its ID
-func UpdateRole(ctx context.Context, objectID primitive.ObjectID, update map[string]interface{}) (int64, error) {
-	filter := bson.M{"_id": objectID}
-	result, err := rolesCollection.UpdateOne(ctx, filter, bson.M{"$set": update})
+func UpdateRole(ctx context.Context, roleID string, update map[string]interface{}) (int64, error) {
+	// Güncelleme işlemi
+	filter := bson.M{"_id": roleID}
+	updateData := bson.M{"$set": update}
+
+	result, err := rolesCollection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		return 0, err
 	}
@@ -71,8 +72,16 @@ func UpdateRole(ctx context.Context, objectID primitive.ObjectID, update map[str
 }
 
 // DeleteRole deletes a role by its ID
-func DeleteRole(ctx context.Context, roleID string) (*mongo.DeleteResult, error) {
-	return rolesCollection.DeleteOne(ctx, bson.M{"_id": roleID})
+func DeleteRole(ctx context.Context, roleID string) (int64, error) {
+	// Silme işlemi
+	filter := bson.M{"_id": roleID}
+
+	result, err := rolesCollection.DeleteOne(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.DeletedCount, nil
 }
 
 // GetAllRoles retrieves all roles

@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // CreateRoleHandler handles role creation
@@ -24,7 +22,7 @@ func CreateRoleHandler(c *gin.Context) {
 	// Kimin oluşturduğunu al
 	createdBy, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized A2"})
 		return
 	}
 	role.CreatedBy = createdBy.(string)
@@ -58,12 +56,6 @@ func GetAllRolesHandler(c *gin.Context) {
 func UpdateRoleHandler(c *gin.Context) {
 	id := c.Param("id")
 
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID"})
-		return
-	}
-
 	var update map[string]interface{}
 	if err := c.ShouldBindJSON(&update); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
@@ -75,11 +67,10 @@ func UpdateRoleHandler(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-
 	update["updated_by"] = updatedBy.(string)
 	update["updated_at"] = time.Now()
 
-	updatedCount, err := services.UpdateRole(c.Request.Context(), objectID, bson.M(update))
+	updatedCount, err := services.UpdateRole(c.Request.Context(), id, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update role"})
 		return
@@ -97,10 +88,14 @@ func UpdateRoleHandler(c *gin.Context) {
 func DeleteRoleHandler(c *gin.Context) {
 	id := c.Param("id")
 
-	_, err := services.DeleteRole(c.Request.Context(), id)
+	deletedCount, err := services.DeleteRole(c.Request.Context(), id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete role"})
-		fmt.Println("Database error during role deletion:", err)
+		return
+	}
+
+	if deletedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Role not found"})
 		return
 	}
 

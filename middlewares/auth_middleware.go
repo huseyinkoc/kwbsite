@@ -52,7 +52,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Kullanıcı bilgilerini context'e ekle
 		c.Set("userID", claims.UserID)     // Kullanıcı ID'si
 		c.Set("username", claims.Username) // Kullanıcı adı
-		c.Set("role", claims.Roles)        // Kullanıcı rolü
+		c.Set("roles", claims.Roles)       // Kullanıcı rolü
 
 		c.Next()
 	}
