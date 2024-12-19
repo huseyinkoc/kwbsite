@@ -14,36 +14,42 @@ import (
 func CreateUserHandler(c *gin.Context) {
 	var user models.User
 
-	// JSON verisini bind et
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		fmt.Println("JSON binding error:", err)
 		return
 	}
 
-	// Şifre alanını kontrol et
+	// Şifre kontrolü
 	if user.Password == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Password cannot be empty"})
 		return
 	}
 
+	// Rolleri kontrol et
+	if len(user.Roles) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Roles cannot be empty"})
+		return
+	}
+
 	// Şifreyi hashle
-	hashedPassword, errHP := services.HashPassword(user.Password)
-	if errHP != nil {
+	hashedPassword, err := services.HashPassword(user.Password)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
 	user.Password = hashedPassword
 
-	// Kullanıcıyı veritabanına ekle
-	_, err := services.CreateUser(user)
+	// FullName oluştur
+	user.FullName = fmt.Sprintf("%s %s", user.Name, user.Surname)
+
+	// Veritabanına ekle
+	_, err = services.CreateUser(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
-		fmt.Println("Database error:", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "User created successfully", "user": user})
 }
 
 // GetAllUsersHandler handles retrieving all users
@@ -72,28 +78,41 @@ func UpdateUserHandler(c *gin.Context) {
 		return
 	}
 
-	// Şifre güncellemesi varsa hashle
+	// Şifre güncelleniyorsa hashle
 	if password, ok := update["password"].(string); ok && password != "" {
-		hashedPassword, errHP := services.HashPassword(password)
-		if errHP != nil {
+		hashedPassword, err := services.HashPassword(password)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 			return
 		}
 		update["password"] = hashedPassword
 	} else {
-		delete(update, "password") // Boş şifre güncellemesini önle
+		delete(update, "password")
 	}
 
-	// Rol güncellemesi varsa ve güncelleyen kullanıcı admin değilse engelle
-	if _, ok := update["role"]; ok {
-		role, _ := c.Get("role")
-		if role != "admin" {
+	// Roller güncelleniyorsa kontrol et
+	if roles, ok := update["roles"]; ok {
+		userRole, _ := c.Get("role")
+		if userRole != "admin" {
 			c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to change roles"})
 			return
 		}
+		update["roles"] = roles
 	}
 
-	// Kullanıcıyı güncelle
+	// FullName güncelleniyorsa
+	if name, ok := update["name"].(string); ok {
+		update["name"] = name
+	}
+	if surname, ok := update["surname"].(string); ok {
+		update["surname"] = surname
+	}
+	if name, nameOk := update["name"].(string); nameOk {
+		if surname, surnameOk := update["surname"].(string); surnameOk {
+			update["full_name"] = fmt.Sprintf("%s %s", name, surname)
+		}
+	}
+
 	_, err = services.UpdateUser(id, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})

@@ -3,6 +3,7 @@ package controllers
 import (
 	"admin-panel/middlewares"
 	"admin-panel/services"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -15,9 +16,9 @@ var jwtSecret = []byte("your_secret_key") // JWT için gizli anahtar
 
 // JWT Claims yapısı
 type Claims struct {
-	UserID   string `json:"userID"`   // Kullanıcı ID'si
-	Username string `json:"username"` // Kullanıcı adı
-	Role     string `json:"role"`     // Kullanıcı rolü
+	UserID   string   `json:"userID"`   // Kullanıcı ID'si
+	Username string   `json:"username"` // Kullanıcı adı
+	Roles    []string `json:"roles"`
 	jwt.StandardClaims
 }
 
@@ -51,7 +52,7 @@ func LoginHandler(c *gin.Context) {
 	claims := &Claims{
 		UserID:   user.ID.Hex(),
 		Username: user.Username,
-		Role:     user.Role,
+		Roles:    user.Roles,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -83,5 +84,10 @@ func LoginHandler(c *gin.Context) {
 		"token":      tokenString,
 		"csrf_token": csrfToken,
 		"message":    "Login successful",
+		"user": gin.H{
+			"name":      user.Name,
+			"surname":   user.Surname,
+			"full_name": fmt.Sprintf("%s %s", user.Name, user.Surname),
+		},
 	})
 }

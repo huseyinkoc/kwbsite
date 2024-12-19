@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"admin-panel/helpers"
 	"admin-panel/models"   // Post modelini import ettik
 	"admin-panel/services" // Post servislerini import ettik
 	"admin-panel/utils"
@@ -13,6 +14,24 @@ import (
 
 // CreatePostHandler handles creating a new post
 func CreatePostHandler(c *gin.Context) {
+
+	role, exists := c.Get("role")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	hasPermission, err := helpers.HasModulePermission(c.Request.Context(), role.(string), "posts", "create")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check permissions", "details": err.Error()})
+		return
+	}
+
+	if !hasPermission {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to create posts"})
+		return
+	}
+
 	var post models.Post
 	if err := c.ShouldBindJSON(&post); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

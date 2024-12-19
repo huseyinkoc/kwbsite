@@ -10,9 +10,9 @@ import (
 func CategoryRoutes(router *gin.Engine) {
 	categories := router.Group("/admin/categories")
 	categories.Use(middlewares.AuthMiddleware())
-	categories.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
+	//categories.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
 	{
-		categories.POST("/create", controllers.CreateCategoryHandler)
-		categories.GET("/", controllers.GetAllCategoriesHandler)
+		categories.POST("/create", middlewares.AuthorizeRolesMiddleware("admin"), controllers.CreateCategoryHandler)
+		categories.GET("/", middlewares.AuthorizeRolesMiddleware("admin", "editor"), controllers.GetAllCategoriesHandler)
 	}
 }

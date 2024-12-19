@@ -11,9 +11,9 @@ import (
 var jwtSecret = []byte("your_secret_key") // JWT token için gizli anahtar
 
 type Claims struct {
-	UserID   string `json:"userID"`   // Kullanıcı ID'si
-	Username string `json:"username"` // Kullanıcı adı
-	Role     string `json:"role"`     // Kullanıcı rolü
+	UserID   string   `json:"userID"`   // Kullanıcı ID'si
+	Username string   `json:"username"` // Kullanıcı adı
+	Roles    []string `json:"roles"`
 	jwt.StandardClaims
 }
 
@@ -52,7 +52,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Kullanıcı bilgilerini context'e ekle
 		c.Set("userID", claims.UserID)     // Kullanıcı ID'si
 		c.Set("username", claims.Username) // Kullanıcı adı
-		c.Set("role", claims.Role)         // Kullanıcı rolü
+		c.Set("role", claims.Roles)        // Kullanıcı rolü
 
 		c.Next()
 	}
