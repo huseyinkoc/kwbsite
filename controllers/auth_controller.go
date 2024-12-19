@@ -15,8 +15,9 @@ var jwtSecret = []byte("your_secret_key") // JWT için gizli anahtar
 
 // JWT Claims yapısı
 type Claims struct {
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	UserID   string `json:"userID"`   // Kullanıcı ID'si
+	Username string `json:"username"` // Kullanıcı adı
+	Role     string `json:"role"`     // Kullanıcı rolü
 	jwt.StandardClaims
 }
 
@@ -48,6 +49,7 @@ func LoginHandler(c *gin.Context) {
 	// JWT token oluştur
 	expirationTime := time.Now().Add(24 * time.Hour) // 1 gün geçerli
 	claims := &Claims{
+		UserID:   user.ID.Hex(),
 		Username: user.Username,
 		Role:     user.Role,
 		StandardClaims: jwt.StandardClaims{

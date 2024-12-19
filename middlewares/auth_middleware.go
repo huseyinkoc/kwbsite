@@ -11,11 +11,13 @@ import (
 var jwtSecret = []byte("your_secret_key") // JWT token için gizli anahtar
 
 type Claims struct {
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	UserID   string `json:"userID"`   // Kullanıcı ID'si
+	Username string `json:"username"` // Kullanıcı adı
+	Role     string `json:"role"`     // Kullanıcı rolü
 	jwt.StandardClaims
 }
 
+// AuthMiddleware JWT doğrulama middleware'i
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Authorization başlığını kontrol et
@@ -48,8 +50,9 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Kullanıcı bilgilerini context'e ekle
-		c.Set("username", claims.Username)
-		c.Set("role", claims.Role)
+		c.Set("userID", claims.UserID)     // Kullanıcı ID'si
+		c.Set("username", claims.Username) // Kullanıcı adı
+		c.Set("role", claims.Role)         // Kullanıcı rolü
 
 		c.Next()
 	}

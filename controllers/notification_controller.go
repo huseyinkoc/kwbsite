@@ -10,22 +10,22 @@ import (
 
 // GetNotificationsHandler kullanıcıya ait bildirimleri döndürür
 func GetNotificationsHandler(c *gin.Context) {
-	// Kullanıcı kimliği (örneğin, bir middleware tarafından ayarlanmış olabilir)
-	userID := c.GetString("userID") // Middleware ile ayarlanmalı
-	if userID == "" {
+	// Context'ten userID al
+	userID, exists := c.Get("userID")
+	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	// Kullanıcı ID'sini ObjectID'ye çevir
-	objectID, err := primitive.ObjectIDFromHex(userID)
+	// userID'yi ObjectID'ye çevir
+	userObjectID, err := primitive.ObjectIDFromHex(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
 		return
 	}
 
 	// Bildirimleri getir
-	notifications, err := services.FetchNotificationsByUserID(c.Request.Context(), objectID)
+	notifications, err := services.FetchNotificationsByUserID(c.Request.Context(), userObjectID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications", "details": err.Error()})
 		return
