@@ -1,10 +1,13 @@
 package services
 
 import (
+	"admin-panel/models"
 	"context"
 	"errors"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -35,4 +38,59 @@ func GetRolePermissions(ctx context.Context, role string, module string) ([]stri
 	}
 
 	return permissions, nil
+}
+
+// CreateRole creates a new role
+func CreateRole(ctx context.Context, role models.Role) (*mongo.InsertOneResult, error) {
+	role.CreatedAt = time.Now()
+	role.UpdatedAt = time.Now()
+
+	return rolesCollection.InsertOne(ctx, role)
+}
+
+// ReadRole fetches a role by its ID
+func ReadRole(ctx context.Context, roleID string) (*models.Role, error) {
+	var role models.Role
+	err := rolesCollection.FindOne(ctx, bson.M{"_id": roleID}).Decode(&role)
+	if err != nil {
+		return nil, err
+	}
+	return &role, nil
+}
+
+// UpdateRole updates a role by its ID
+// UpdateRole updates a role by its ID
+func UpdateRole(ctx context.Context, objectID primitive.ObjectID, update map[string]interface{}) (int64, error) {
+	filter := bson.M{"_id": objectID}
+	result, err := rolesCollection.UpdateOne(ctx, filter, bson.M{"$set": update})
+	if err != nil {
+		return 0, err
+	}
+
+	return result.ModifiedCount, nil
+}
+
+// DeleteRole deletes a role by its ID
+func DeleteRole(ctx context.Context, roleID string) (*mongo.DeleteResult, error) {
+	return rolesCollection.DeleteOne(ctx, bson.M{"_id": roleID})
+}
+
+// GetAllRoles retrieves all roles
+func GetAllRoles(ctx context.Context) ([]models.Role, error) {
+	cursor, err := rolesCollection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var roles []models.Role
+	for cursor.Next(ctx) {
+		var role models.Role
+		if err := cursor.Decode(&role); err != nil {
+			return nil, err
+		}
+		roles = append(roles, role)
+	}
+
+	return roles, nil
 }

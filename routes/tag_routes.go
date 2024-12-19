@@ -12,7 +12,7 @@ func TagRoutes(router *gin.Engine) {
 	tags.Use(middlewares.AuthMiddleware())
 	tags.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
 	{
-		tags.POST("/create", controllers.CreateTagHandler)
+		tags.POST("/create", middlewares.CSRFMiddleware(), controllers.CreateTagHandler)
 		tags.GET("/", controllers.GetAllTagsHandler)
 	}
 }

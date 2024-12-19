@@ -12,7 +12,7 @@ func CategoryRoutes(router *gin.Engine) {
 	categories.Use(middlewares.AuthMiddleware())
 	//categories.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
 	{
-		categories.POST("/create", middlewares.AuthorizeRolesMiddleware("admin"), controllers.CreateCategoryHandler)
-		categories.GET("/", middlewares.AuthorizeRolesMiddleware("admin", "editor"), controllers.GetAllCategoriesHandler)
+		categories.POST("/create", middlewares.CSRFMiddleware(), middlewares.AuthorizeRolesMiddleware("admin"), controllers.CreateCategoryHandler)
+		categories.GET("/", middlewares.CSRFMiddleware(), middlewares.AuthorizeRolesMiddleware("admin", "editor"), controllers.GetAllCategoriesHandler)
 	}
 }

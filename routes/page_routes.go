@@ -12,9 +12,9 @@ func PageRoutes(router *gin.Engine) {
 	pages.Use(middlewares.AuthMiddleware())                            // JWT kontrolü
 	pages.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor")) // Roller
 	{
-		pages.POST("/create", controllers.CreatePageHandler)
+		pages.POST("/create", middlewares.CSRFMiddleware(), controllers.CreatePageHandler)
 		pages.GET("/", controllers.GetAllPagesHandler)
-		pages.PUT("/:id", controllers.UpdatePageHandler)
-		pages.DELETE("/:id", controllers.DeletePageHandler)
+		pages.PUT("/:id", middlewares.CSRFMiddleware(), controllers.UpdatePageHandler)
+		pages.DELETE("/:id", middlewares.CSRFMiddleware(), controllers.DeletePageHandler)
 	}
 }

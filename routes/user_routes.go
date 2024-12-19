@@ -12,9 +12,9 @@ func UserRoutes(router *gin.Engine) {
 	users.Use(middlewares.AuthMiddleware())                  // JWT Middleware
 	users.Use(middlewares.AuthorizeRolesMiddleware("admin")) // Sadece adminler erişebilir
 	{
-		users.POST("/create", controllers.CreateUserHandler)
+		users.POST("/create", middlewares.CSRFMiddleware(), controllers.CreateUserHandler)
 		users.GET("/", controllers.GetAllUsersHandler)
-		users.PUT("/:id", controllers.UpdateUserHandler)
-		users.DELETE("/:id", controllers.DeleteUserHandler)
+		users.PUT("/:id", middlewares.CSRFMiddleware(), controllers.UpdateUserHandler)
+		users.DELETE("/:id", middlewares.CSRFMiddleware(), controllers.DeleteUserHandler)
 	}
 }

@@ -52,6 +52,7 @@ func main() {
 	services.InitMediaService(configs.DB)
 	services.InitCommentService(configs.DB)
 	services.InitNotificationService(configs.DB)
+	services.InitRolesService(configs.DB)
 
 	log.Println("Tüm servisler başarıyla başlatıldı.")
 
@@ -87,6 +88,7 @@ func main() {
 	routes.MediaRoutes(r) // Medya rotalarını ekle
 	routes.RegisterCommentRoutes(r)
 	routes.RegisterNotificationRoutes(r)
+	routes.RoleRoutes(r)
 
 	r.Static("/uploads", "./uploads")
 
