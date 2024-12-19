@@ -3,6 +3,7 @@ package controllers
 import (
 	"admin-panel/models"
 	"admin-panel/services"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -160,14 +161,28 @@ func AddReplyHandler(c *gin.Context) {
 	// InsertedID'yi al ve logla veya başka bir işlemde kullan
 	replyID, ok := replyResult.InsertedID.(primitive.ObjectID)
 	if !ok {
+		log.Printf("InsertedID is not a valid ObjectID: %v", replyResult.InsertedID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse inserted ID"})
 		return
 	}
-	// Ana yoruma bu cevabı ekle
+
 	// Ana yoruma bu cevabı ekle
 	err = services.AddReply(c.Request.Context(), objectID, replyID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add reply", "details": err.Error()})
+		return
+	}
+
+	// Ana yorumu bul ve bildirim oluştur
+	parentComment, err := services.FetchCommentByID(c.Request.Context(), objectID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch parent comment", "details": err.Error()})
+		return
+	}
+
+	err = services.CreateNotification(c.Request.Context(), parentComment.UserID, "Yorumunuza bir yanıt geldi.")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create notification", "details": err.Error()})
 		return
 	}
 

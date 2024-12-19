@@ -109,3 +109,13 @@ func GetCommentsByPostIDWithPagination(ctx context.Context, postID primitive.Obj
 	}
 	return comments, nil
 }
+
+func FetchCommentByID(ctx context.Context, commentID primitive.ObjectID) (*models.Comment, error) {
+	filter := bson.M{"_id": commentID}
+	var comment models.Comment
+	err := commentCollection.FindOne(ctx, filter).Decode(&comment)
+	if err != nil {
+		return nil, err
+	}
+	return &comment, nil
+}
