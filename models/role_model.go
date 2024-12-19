@@ -1,6 +1,6 @@
 package models
 
 type Role struct {
-	ID      string              `bson:"_id"`     // Rol adı
-	Modules map[string][]string `bson:"modules"` // Modül bazlı izinler
+	ID          string              `bson:"_id" json:"id"`
+	Permissions map[string][]string `bson:"permissions" json:"permissions"` // Modül bazlı izinler
 }

@@ -6,7 +6,7 @@ import (
 )
 
 func HasModulePermission(ctx context.Context, role string, module string, action string) (bool, error) {
-	permissions, err := services.GetModulePermissions(ctx, role, module)
+	permissions, err := services.GetRolePermissions(ctx, role, module)
 	if err != nil {
 		return false, err
 	}

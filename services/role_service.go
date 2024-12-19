@@ -1,8 +1,8 @@
 package services
 
 import (
-	"admin-panel/models"
 	"context"
+	"errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -10,22 +10,26 @@ import (
 
 var rolesCollection *mongo.Collection
 
-// InitRolesService initializes the roles collection
 func InitRolesService(client *mongo.Client) {
 	rolesCollection = client.Database("admin_panel").Collection("roles")
 }
 
-// GetModulePermissions fetches permissions for a specific role and module
-func GetModulePermissions(ctx context.Context, role string, module string) ([]string, error) {
-	var roleData models.Role
-	filter := bson.M{"_id": role}
+// GetRolePermissions fetches permissions for a specific role and module
+func GetRolePermissions(ctx context.Context, role string, module string) ([]string, error) {
+	var roleData struct {
+		Permissions map[string][]string `bson:"permissions"`
+	}
 
+	filter := bson.M{"_id": role}
 	err := rolesCollection.FindOne(ctx, filter).Decode(&roleData)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New("role not found")
+		}
 		return nil, err
 	}
 
-	permissions, exists := roleData.Modules[module]
+	permissions, exists := roleData.Permissions[module]
 	if !exists {
 		return nil, nil
 	}
