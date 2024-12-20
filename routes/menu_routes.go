@@ -11,9 +11,9 @@ func MenuRoutes(router *gin.Engine) {
 	menus := router.Group("/admin/menus")
 	menus.Use(middlewares.AuthMiddleware()) // Kullanıcı giriş kontrolü
 	{
-		menus.POST("/", controllers.CreateMenuHandler) // Menü oluşturma
-		menus.GET("/", controllers.GetMenusHandler)    // Yetkilere göre menüleri getirme
-		menus.PUT("/:id", controllers.UpdateMenuHandler)
-		menus.DELETE("/:id", controllers.DeleteMenuHandler)
+		menus.POST("/", middlewares.CSRFMiddleware(), controllers.CreateMenuHandler) // Menü oluşturma
+		menus.GET("/", controllers.GetMenusHandler)                                  // Yetkilere göre menüleri getirme
+		menus.PUT("/:id", middlewares.CSRFMiddleware(), controllers.UpdateMenuHandler)
+		menus.DELETE("/:id", middlewares.CSRFMiddleware(), controllers.DeleteMenuHandler)
 	}
 }
