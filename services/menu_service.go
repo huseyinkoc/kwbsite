@@ -12,6 +12,10 @@ import (
 
 var menusCollection *mongo.Collection // Initialize this in your database setup
 
+func InitMenuService(client *mongo.Client) {
+	menusCollection = client.Database("admin_panel").Collection("menus")
+}
+
 // CreateMenu creates a new menu entry in the database
 func CreateMenu(ctx context.Context, menu *models.Menu) (*models.Menu, error) {
 	menu.ID = primitive.NewObjectID()

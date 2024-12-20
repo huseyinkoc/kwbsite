@@ -53,6 +53,7 @@ func main() {
 	services.InitCommentService(configs.DB)
 	services.InitNotificationService(configs.DB)
 	services.InitRolesService(configs.DB)
+	services.InitMenuService(configs.DB)
 
 	log.Println("Tüm servisler başarıyla başlatıldı.")
 
@@ -89,6 +90,8 @@ func main() {
 	routes.RegisterCommentRoutes(r)
 	routes.RegisterNotificationRoutes(r)
 	routes.RoleRoutes(r)
+	routes.MenuRoutes(r)
+
 	// GraphQL rotası
 	routes.GraphQLRoutes(r)
 
