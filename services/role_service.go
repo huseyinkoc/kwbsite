@@ -103,3 +103,12 @@ func GetAllRoles(ctx context.Context) ([]models.Role, error) {
 
 	return roles, nil
 }
+
+func GetRoleByID(ctx context.Context, roleID string) (*models.Role, error) {
+	var role models.Role
+	err := rolesCollection.FindOne(ctx, bson.M{"_id": roleID}).Decode(&role)
+	if err != nil {
+		return nil, err
+	}
+	return &role, nil
+}

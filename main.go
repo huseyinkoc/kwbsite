@@ -89,6 +89,8 @@ func main() {
 	routes.RegisterCommentRoutes(r)
 	routes.RegisterNotificationRoutes(r)
 	routes.RoleRoutes(r)
+	// GraphQL rotası
+	routes.GraphQLRoutes(r)
 
 	r.Static("/uploads", "./uploads")
 
