@@ -43,7 +43,11 @@ func main() {
 		}
 	}()
 
+	emailConfig := configs.LoadEmailConfig()
+
 	// Servisleri başlat
+	services.InitEmailService(emailConfig)
+	log.Println("Email service initialized")
 	services.InitUserService(configs.DB)
 	services.InitPostService(configs.DB)
 	services.InitPageService(configs.DB)
