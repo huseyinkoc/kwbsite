@@ -92,3 +92,38 @@ func GetUserByUsername(username string) (models.User, error) {
 
 	return user, nil
 }
+
+// VerifyUserAccount sets the is_verified field to true for a specific user
+func VerifyUserAccount(ctx context.Context, userID primitive.ObjectID) error {
+	filter := bson.M{"_id": userID}
+	update := bson.M{"$set": bson.M{"is_verified": true}}
+
+	result, err := userCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("user not found")
+	}
+
+	return nil
+}
+
+// GetUserEmailByID retrieves the email address of a user by their ID
+func GetUserEmailByID(ctx context.Context, userID primitive.ObjectID) (string, error) {
+	var user struct {
+		Email string `bson:"email"`
+	}
+
+	// Kullanıcıyı veritabanında bul
+	err := userCollection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return "", errors.New("user not found")
+		}
+		return "", err
+	}
+
+	return user.Email, nil
+}

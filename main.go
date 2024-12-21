@@ -59,6 +59,7 @@ func main() {
 	services.InitRolesService(configs.DB)
 	services.InitMenuService(configs.DB)
 	services.InitContactService(configs.DB)
+	services.InitEmailVerificationService(configs.DB)
 
 	log.Println("Tüm servisler başarıyla başlatıldı.")
 
