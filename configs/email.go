@@ -14,11 +14,11 @@ type EmailConfig struct {
 // LoadEmailConfig loads the email configuration
 func LoadEmailConfig() EmailConfig {
 	return EmailConfig{
-		Host:     "smtp.gmail.com",
-		Port:     587,
-		Username: "camsihfm@gmail.com",
-		Password: "hjaajpuhxswysgzl",
-		From:     "camsihfm@gmail.com",
+		Host:     "xxxxxxx",
+		Port:     000,
+		Username: "xxxxxxxx",
+		Password: "xxxxxxxxxx",
+		From:     "xxxxxxxxxxx",
 		UseTLS:   true,
 		UseSSL:   false,
 	}
