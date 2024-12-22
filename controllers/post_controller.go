@@ -249,3 +249,17 @@ func GetPostsByLanguageHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, localizedPosts)
 }
+
+func GetPostByLangAndSlugHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := c.Param("lang")
+	slug := c.Param("slug")
+
+	post, err := services.GetPostByLangAndSlug(ctx, lang, slug)
+	if err != nil {
+		c.JSON(404, gin.H{"error": "Post not found"})
+		return
+	}
+
+	c.JSON(200, gin.H{"data": post})
+}

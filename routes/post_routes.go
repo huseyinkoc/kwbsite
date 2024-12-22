@@ -17,5 +17,8 @@ func PostRoutes(router *gin.Engine) {
 		posts.GET("/", middlewares.ModulePermissionMiddleware("posts", "read"), controllers.GetAllPostsHandler)
 		posts.GET("/filter", controllers.GetFilteredPostsHandler)       // Filtrelenmiş postlar
 		posts.GET("/lang/:lang", controllers.GetPostsByLanguageHandler) // Dil bazlı içerik listeleme
+		// Yeni rota: Dil ve slug üzerinden post getirme
+		posts.GET("/:lang/:slug", controllers.GetPostByLangAndSlugHandler)
+
 	}
 }

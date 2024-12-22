@@ -82,3 +82,21 @@ func UpdatePost(ctx context.Context, post *models.Post) error {
 	)
 	return err
 }
+
+// GetPostByLangAndSlug retrieves a single post based on language and slug
+func GetPostByLangAndSlug(ctx context.Context, lang string, slug string) (*models.Post, error) {
+	var post models.Post
+
+	// Filtre: Dil ve slug'a göre localizations içinden eşleşme bul
+	filter := bson.M{
+		"localizations." + lang + ".slug": slug, // Dil ve slug eşleştirme
+	}
+
+	// Veritabanında eşleşen dokümanı bul
+	err := postCollection.FindOne(ctx, filter).Decode(&post)
+	if err != nil {
+		return nil, err // Eğer doküman bulunamazsa hata döndür
+	}
+
+	return &post, nil
+}
