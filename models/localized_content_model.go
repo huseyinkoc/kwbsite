@@ -16,4 +16,12 @@ type LocalizedContent struct {
 type LocalizedField struct {
 	Title   string `bson:"title" json:"title"`
 	Content string `bson:"content" json:"content"`
+	Slug    string `bson:"slug" json:"slug"`
+}
+
+// MetaTag represents SEO-related metadata
+type MetaTag struct {
+	Title       string   `bson:"title" json:"title"`             // SEO Başlığı
+	Description string   `bson:"description" json:"description"` // SEO Açıklaması
+	Keywords    []string `bson:"keywords" json:"keywords"`       // SEO Anahtar Kelimeler
 }

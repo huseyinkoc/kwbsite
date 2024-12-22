@@ -3,6 +3,7 @@ package controllers
 import (
 	"admin-panel/models"
 	"admin-panel/services"
+	"admin-panel/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -50,6 +51,11 @@ func UpdatePageHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&update); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Slug kontrolü
+	if title, ok := update["title"].(string); ok {
+		update["slug"] = utils.GenerateSlug(title)
 	}
 
 	_, err = services.UpdatePage(id, update)

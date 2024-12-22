@@ -22,7 +22,7 @@ func CreatePage(page models.Page) (*mongo.InsertOneResult, error) {
 	defer cancel()
 
 	page.ID = primitive.NewObjectID()
-	page.CreatedAt = time.Now()
+	page.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	page.UpdatedAt = page.CreatedAt
 
 	return pageCollection.InsertOne(ctx, page)
@@ -56,7 +56,8 @@ func UpdatePage(id primitive.ObjectID, update bson.M) (*mongo.UpdateResult, erro
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	update["updated_at"] = time.Now().Unix()
+	// Güncellenen alanlara `updated_at` ekleme
+	update["updated_at"] = primitive.NewDateTimeFromTime(time.Now())
 	return pageCollection.UpdateByID(ctx, id, bson.M{"$set": update})
 }
 

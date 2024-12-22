@@ -2,10 +2,13 @@ package services
 
 import (
 	"admin-panel/models"
+	"admin-panel/utils"
 	"context"
+	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -19,7 +22,20 @@ func CreateCategory(category models.Category) (*mongo.InsertOneResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	category.CreatedAt = time.Now()
+	// Slug oluşturma
+	if category.Slug == nil {
+		category.Slug = make(map[string]string)
+	}
+
+	for lang, localization := range category.Localizations {
+		if localization.Title != "" {
+			category.Slug[lang] = utils.GenerateSlug(localization.Title)
+		} else if lang == "en" {
+			return nil, errors.New("English name is required for slug generation")
+		}
+	}
+
+	category.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	return categoryCollection.InsertOne(ctx, category)
 }
 

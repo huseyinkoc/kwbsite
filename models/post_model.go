@@ -1,21 +1,18 @@
 package models
 
-import (
-	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
-)
+import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type Post struct {
-	ID              primitive.ObjectID        `bson:"_id,omitempty"`
-	Slug            string                    `bson:"slug"`             // SEO dostu URL
-	Localizations   map[string]LocalizedField `bson:"localizations"`    // Dil kodu ile eşleştirilmiş içerik
-	MetaTitle       string                    `bson:"meta_title"`       // SEO Başlığı
-	MetaDescription string                    `bson:"meta_description"` // SEO Açıklaması
-	MetaKeywords    []string                  `bson:"meta_keywords"`    // SEO Anahtar Kelimeler
-	Status          string                    `bson:"status"`           // İçerik durumu (published, draft)
-	AuthorID        primitive.ObjectID        `bson:"author_id"`
-	CategoryIDs     []primitive.ObjectID      `bson:"category_ids"` // İlişkili kategoriler
-	CreatedAt       time.Time                 `bson:"created_at"`
-	UpdatedAt       time.Time                 `bson:"updated_at"`
+	ID            primitive.ObjectID        `bson:"_id,omitempty" json:"id"`
+	Localizations map[string]LocalizedField `bson:"localizations" json:"localizations"` // Dil koduna göre içerik
+	Status        string                    `bson:"status" json:"status"`               // draft, published, scheduled
+	CategoryIDs   []primitive.ObjectID      `bson:"category_ids" json:"category_ids"`
+	TagIDs        []primitive.ObjectID      `bson:"tag_ids" json:"tag_ids"`
+	PublishDate   *primitive.DateTime       `bson:"publish_date,omitempty" json:"publish_date,omitempty"` // Yayınlanma tarihi
+	AuthorID      primitive.ObjectID        `bson:"author_id" json:"author_id"`
+	MetaTags      map[string]MetaTag        `bson:"meta_tags" json:"meta_tags"` // Dil kodu ve SEO bilgileri
+	CreatedAt     primitive.DateTime        `bson:"created_at" json:"created_at"`
+	UpdatedAt     primitive.DateTime        `bson:"updated_at" json:"updated_at"`
+	CreatedBy     string                    `bson:"created_by" json:"created_by"`
+	UpdatedBy     string                    `bson:"updated_by" json:"updated_by"`
 }
