@@ -61,6 +61,7 @@ func main() {
 	services.InitContactService(configs.DB)
 	services.InitEmailVerificationService(configs.DB)
 	services.InitPasswordResetService(configs.DB)
+	services.InitLocalizedContentService(configs.DB)
 
 	log.Println("Tüm servisler başarıyla başlatıldı.")
 
@@ -99,6 +100,7 @@ func main() {
 	routes.RoleRoutes(r)
 	routes.MenuRoutes(r)
 	routes.ContactRoutes(r)
+	routes.LocalizedContentRoutes(r)
 
 	// GraphQL rotası
 	routes.GraphQLRoutes(r)

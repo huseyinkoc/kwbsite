@@ -120,12 +120,12 @@ func GetPostsByLanguageHandler(c *gin.Context) {
 	localizedPosts := []map[string]interface{}{}
 	for _, post := range posts {
 		// Belirtilen dilde içerik var mı kontrol edin
-		if localizedContent, ok := post.Localizations[lang]; ok {
+		if LocalizedField, ok := post.Localizations[lang]; ok {
 			localizedPosts = append(localizedPosts, map[string]interface{}{
 				"id":         post.ID.Hex(), // MongoDB ObjectID'yi stringe çevirin
 				"slug":       post.Slug,
-				"title":      localizedContent.Title,
-				"content":    localizedContent.Content,
+				"title":      LocalizedField.Title,
+				"content":    LocalizedField.Content,
 				"status":     post.Status,
 				"categories": post.CategoryIDs, // Kategorileri döndürün
 			})
