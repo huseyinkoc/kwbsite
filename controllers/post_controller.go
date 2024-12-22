@@ -49,8 +49,8 @@ func CreatePostHandler(c *gin.Context) {
 	for lang, localization := range input.Localizations {
 		if localization.Slug == "" {
 			localization.Slug = utils.GenerateSlug(localization.Title)
-			input.Localizations[lang] = localization
 		}
+		input.Localizations[lang] = localization
 	}
 
 	// Varsayılan durum
@@ -73,7 +73,7 @@ func CreatePostHandler(c *gin.Context) {
 
 	// Veritabanına kaydet
 	if err := services.CreatePost(c.Request.Context(), &post); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create post"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create post", "details": err.Error()})
 		return
 	}
 
@@ -167,7 +167,7 @@ func UpdatePostHandler(c *gin.Context) {
 	// Mevcut postu al
 	post, err := services.GetPostByID(c.Request.Context(), objectID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch post"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch post", "details": err.Error()})
 		return
 	}
 
@@ -200,7 +200,7 @@ func UpdatePostHandler(c *gin.Context) {
 
 	// Veritabanında güncelle
 	if err := services.UpdatePost(c.Request.Context(), post); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post", "details": err.Error()})
 		return
 	}
 
