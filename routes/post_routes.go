@@ -11,7 +11,7 @@ func PostRoutes(router *gin.Engine) {
 	posts := router.Group("/admin/posts")
 	posts.Use(middlewares.AuthMiddleware())
 	posts.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
-	//posts.Use(middlewares.LanguageMiddleware()) // Dil middleware’i ekle
+	posts.Use(middlewares.LanguageMiddleware()) // Dil middleware’i ekle
 	{
 		posts.POST("/create", middlewares.CSRFMiddleware(), middlewares.ModulePermissionMiddleware("posts", "create"), controllers.CreatePostHandler)
 		posts.GET("/", middlewares.ModulePermissionMiddleware("posts", "read"), controllers.GetAllPostsHandler)
