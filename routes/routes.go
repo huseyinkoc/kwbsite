@@ -14,6 +14,9 @@ func AuthRoutes(router *gin.Engine) {
 		auth.POST("/login", controllers.LoginHandler)
 		auth.GET("/verify", controllers.VerifyEmailHandler)
 		auth.POST("/send-verification/:userID", controllers.SendVerificationEmailHandler)
+		auth.POST("/request-password-reset", controllers.RequestPasswordResetHandler)
+		auth.POST("/reset-password", controllers.ResetPasswordHandler)
+
 	}
 
 	protected := router.Group("/admin")

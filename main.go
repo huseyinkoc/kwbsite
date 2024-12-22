@@ -60,6 +60,7 @@ func main() {
 	services.InitMenuService(configs.DB)
 	services.InitContactService(configs.DB)
 	services.InitEmailVerificationService(configs.DB)
+	services.InitPasswordResetService(configs.DB)
 
 	log.Println("Tüm servisler başarıyla başlatıldı.")
 

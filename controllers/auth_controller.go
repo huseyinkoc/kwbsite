@@ -131,3 +131,74 @@ func VerifyEmailHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Email verified successfully"})
 }
+
+func RequestPasswordResetHandler(c *gin.Context) {
+	var request struct {
+		Email string `json:"email"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// Kullanıcıyı email ile bulun
+	userID, err := services.GetUserIDByEmail(c.Request.Context(), request.Email)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Email not found"})
+		return
+	}
+
+	// Reset token oluştur
+	token, err := services.GeneratePasswordResetToken(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate password reset token"})
+		return
+	}
+
+	resetURL := "http://localhost:8080/auth/reset-password?token=" + token
+	subject := "Password Reset Request"
+	body := "Click the link to reset your password: " + resetURL
+
+	err = services.SendEmail([]string{request.Email}, subject, body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset email sent"})
+}
+
+func ResetPasswordHandler(c *gin.Context) {
+	token := c.Query("token")
+	if token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is required"})
+		return
+	}
+
+	var request struct {
+		NewPassword string `json:"new_password"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// Token'ı doğrula
+	userID, err := services.VerifyPasswordResetToken(c.Request.Context(), token)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Şifreyi güncelle
+	err = services.UpdateUserPassword(c.Request.Context(), userID, request.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+		return
+	}
+
+	// Token'ı sil
+	_ = services.DeletePasswordResetToken(c.Request.Context(), token)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
+}

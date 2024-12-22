@@ -127,3 +127,45 @@ func GetUserEmailByID(ctx context.Context, userID primitive.ObjectID) (string, e
 
 	return user.Email, nil
 }
+
+// UpdateUserPassword updates the password of a user by their ID
+func UpdateUserPassword(ctx context.Context, userID primitive.ObjectID, newPassword string) error {
+	// Şifreyi hashle
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("failed to hash password")
+	}
+
+	// Kullanıcının şifresini güncelle
+	filter := bson.M{"_id": userID}
+	update := bson.M{"$set": bson.M{"password": string(hashedPassword)}}
+
+	result, err := userCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("user not found")
+	}
+
+	return nil
+}
+
+// GetUserIDByEmail retrieves the user ID for a given email address
+func GetUserIDByEmail(ctx context.Context, email string) (primitive.ObjectID, error) {
+	var user struct {
+		ID primitive.ObjectID `bson:"_id"`
+	}
+
+	// Kullanıcıyı email adresine göre bul
+	err := userCollection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return primitive.NilObjectID, errors.New("user not found")
+		}
+		return primitive.NilObjectID, err
+	}
+
+	return user.ID, nil
+}
