@@ -9,27 +9,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // CreatePostHandler handles creating a new post
 func CreatePostHandler(c *gin.Context) {
-	role, exists := c.Get("role")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	hasPermission, err := helpers.HasModulePermission(c.Request.Context(), role.(string), "posts", "create")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check permissions", "details": err.Error()})
-		return
-	}
-
-	if !hasPermission {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to create posts"})
-		return
-	}
 
 	var input struct {
 		Localizations map[string]models.LocalizedField `json:"localizations" binding:"required"`
@@ -205,4 +190,62 @@ func UpdatePostHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Post updated successfully", "post": post})
+}
+
+func GetFilteredPostsHandler(c *gin.Context) {
+	category := c.Query("category")
+	tag := c.Query("tag")
+	status := c.Query("status")
+
+	filter := bson.M{}
+	if category != "" {
+		filter["categories"] = category
+	}
+	if tag != "" {
+		filter["tags"] = tag
+	}
+	if status != "" {
+		filter["status"] = status
+	}
+
+	posts, err := services.GetFilteredPosts(c.Request.Context(), filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve filtered posts", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, posts)
+}
+
+func GetPostsByLanguageHandler(c *gin.Context) {
+	lang := c.Param("lang")
+
+	posts, err := services.GetAllPosts(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve posts", "details": err.Error()})
+		return
+	}
+
+	localizedPosts := []map[string]interface{}{}
+	for _, post := range posts {
+		if localization, ok := post.Localizations[lang]; ok {
+			localizedPosts = append(localizedPosts, map[string]interface{}{
+				"id":         post.ID.Hex(),
+				"slug":       localization.Slug,
+				"title":      localization.Title,
+				"content":    localization.Content,
+				"status":     post.Status,
+				"categories": post.CategoryIDs,
+				"tags":       post.TagIDs,
+				"meta_tags":  post.MetaTags[lang],
+			})
+		}
+	}
+
+	if len(localizedPosts) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "No posts found for the specified language"})
+		return
+	}
+
+	c.JSON(http.StatusOK, localizedPosts)
 }

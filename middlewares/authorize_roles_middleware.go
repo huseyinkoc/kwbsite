@@ -12,7 +12,7 @@ func AuthorizeRolesMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		roles, exists := c.Get("roles") // Context'ten roller dizisi alınır
 		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized A"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			c.Abort()
 			return
 		}
