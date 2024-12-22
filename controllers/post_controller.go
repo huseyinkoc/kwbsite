@@ -52,8 +52,8 @@ func CreatePostHandler(c *gin.Context) {
 		TagIDs:        input.TagIDs,
 		PublishDate:   input.PublishDate,
 		MetaTags:      input.MetaTags,
-		CreatedAt:     primitive.NewDateTimeFromTime(time.Now()),
-		UpdatedAt:     primitive.NewDateTimeFromTime(time.Now()),
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 
 	// Veritabanına kaydet
@@ -181,7 +181,7 @@ func UpdatePostHandler(c *gin.Context) {
 		post.MetaTags = input.MetaTags
 	}
 
-	post.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
+	post.UpdatedAt = time.Now()
 
 	// Veritabanında güncelle
 	if err := services.UpdatePost(c.Request.Context(), post); err != nil {

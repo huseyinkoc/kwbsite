@@ -18,8 +18,8 @@ func InitPostService(client *mongo.Client) {
 
 // CreatePost creates a new post
 func CreatePost(ctx context.Context, post *models.Post) error {
-	post.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
-	post.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
+	post.CreatedAt = time.Now()
+	post.UpdatedAt = time.Now()
 
 	_, err := postCollection.InsertOne(ctx, post)
 	return err
@@ -74,7 +74,7 @@ func GetFilteredPosts(ctx context.Context, filter bson.M) ([]models.Post, error)
 
 // UpdatePost updates an existing post
 func UpdatePost(ctx context.Context, post *models.Post) error {
-	post.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
+	post.UpdatedAt = time.Now()
 	_, err := postCollection.UpdateOne(
 		ctx,
 		bson.M{"_id": post.ID},
