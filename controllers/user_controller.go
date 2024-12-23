@@ -140,3 +140,31 @@ func DeleteUserHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
+
+func UpdatePreferredLanguageHandler(c *gin.Context) {
+	userID := c.GetString("userID") // Kullanıcı kimliği JWT'den alınır
+
+	var input struct {
+		LanguageCode string `json:"language_code" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Verilen dil aktif mi kontrol et
+	enabled, err := services.IsLanguageEnabled(input.LanguageCode)
+	if err != nil || !enabled {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or disabled language"})
+		return
+	}
+
+	// Kullanıcının dil tercihini güncelle
+	if err := services.UpdateUserPreferredLanguage(userID, input.LanguageCode); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update preferred language"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Preferred language updated successfully"})
+}

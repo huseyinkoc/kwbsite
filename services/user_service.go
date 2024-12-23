@@ -169,3 +169,29 @@ func GetUserIDByEmail(ctx context.Context, email string) (primitive.ObjectID, er
 
 	return user.ID, nil
 }
+
+func UpdateUserPreferredLanguage(userID string, languageCode string) error {
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+
+	_, err = userCollection.UpdateOne(
+		context.Background(),
+		bson.M{"_id": objectID},
+		bson.M{"$set": bson.M{"preferred_language": languageCode, "updated_at": primitive.NewDateTimeFromTime(time.Now())}},
+	)
+	return err
+}
+
+func IsLanguageEnabled(languageCode string) (bool, error) {
+	var lang models.Language
+	err := languageCollection.FindOne(context.Background(), bson.M{"code": languageCode, "enabled": true}).Decode(&lang)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}

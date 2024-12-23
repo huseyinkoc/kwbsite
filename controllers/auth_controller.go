@@ -17,9 +17,10 @@ var jwtSecret = []byte("your_secret_key") // JWT için gizli anahtar
 
 // JWT Claims yapısı
 type Claims struct {
-	UserID   string   `json:"userID"`   // Kullanıcı ID'si
-	Username string   `json:"username"` // Kullanıcı adı
-	Roles    []string `json:"roles"`
+	UserID            string   `json:"userID"`             // Kullanıcı ID'si
+	Username          string   `json:"username"`           // Kullanıcı adı
+	PreferredLanguage string   `json:"preferred_language"` // Dil tercihi
+	Roles             []string `json:"roles"`
 	jwt.StandardClaims
 }
 
@@ -48,12 +49,18 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
+	preferredLanguage := user.PreferredLanguage
+	if preferredLanguage == "" {
+		preferredLanguage = "en" // Varsayılan dil
+	}
+
 	// JWT token oluştur
 	expirationTime := time.Now().Add(24 * time.Hour) // 1 gün geçerli
 	claims := &Claims{
-		UserID:   user.ID.Hex(),
-		Username: user.Username,
-		Roles:    user.Roles,
+		UserID:            user.ID.Hex(),
+		Username:          user.Username,
+		Roles:             user.Roles,
+		PreferredLanguage: preferredLanguage, // Dil tercihini ekledik
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},

@@ -16,5 +16,6 @@ func UserRoutes(router *gin.Engine) {
 		users.GET("/", controllers.GetAllUsersHandler)
 		users.PUT("/:id", middlewares.CSRFMiddleware(), controllers.UpdateUserHandler)
 		users.DELETE("/:id", middlewares.CSRFMiddleware(), controllers.DeleteUserHandler)
+		users.PUT("/preferred-language", controllers.UpdatePreferredLanguageHandler) // Kullanıcı dil tercihi
 	}
 }
