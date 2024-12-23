@@ -63,6 +63,7 @@ func main() {
 	services.InitPasswordResetService(configs.DB)
 	services.InitLocalizedContentService(configs.DB)
 	services.InitLanguageService(configs.DB)
+	services.InitActivityLogService(configs.DB)
 
 	log.Println("Tüm servisler başarıyla başlatıldı.")
 
@@ -88,6 +89,9 @@ func main() {
 	// Logger middleware, tüm rotalar için etkin
 	r.Use(middlewares.LoggerMiddleware())
 
+	// Global hata middleware'ini ekleyin
+	r.Use(middlewares.ErrorLoggingMiddleware())
+
 	// Rotaları yükle
 	routes.AuthRoutes(r)
 	routes.UserRoutes(r)
@@ -103,6 +107,7 @@ func main() {
 	routes.ContactRoutes(r)
 	routes.LocalizedContentRoutes(r)
 	routes.LanguageRoutes(r)
+	routes.ActivityLogRoutes(r)
 
 	// GraphQL rotası
 	routes.GraphQLRoutes(r)
