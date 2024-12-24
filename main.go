@@ -2,6 +2,7 @@ package main
 
 import (
 	"admin-panel/configs"
+	_ "admin-panel/docs" // Swagger dokümantasyonu için gerekli
 	"admin-panel/middlewares"
 	"admin-panel/routes"
 	"admin-panel/services"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func init() {
@@ -72,6 +75,9 @@ func main() {
 	// Gin başlat
 	r := gin.Default()
 
+	// Swagger route
+	r.GET("/api-docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	// Dil ve SEO dostu rotalar
 	r.GET("/:lang/:slug", func(c *gin.Context) {
 		lang := c.Param("lang")
@@ -118,6 +124,7 @@ func main() {
 	routes.GraphQLRoutes(r)
 
 	r.Static("/uploads", "./uploads")
+	r.Static("/docs", "./docs")
 
 	// Sunucuyu başlat
 	r.Run(":8080")

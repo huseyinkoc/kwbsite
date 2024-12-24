@@ -13,7 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// CreatePostHandler handles creating a new post
 func CreatePostHandler(c *gin.Context) {
 
 	var input struct {
@@ -21,7 +20,7 @@ func CreatePostHandler(c *gin.Context) {
 		Status        string                           `json:"status"`
 		CategoryIDs   []primitive.ObjectID             `json:"category_ids"`
 		TagIDs        []primitive.ObjectID             `json:"tag_ids"`
-		PublishDate   *primitive.DateTime              `json:"publish_date"`
+		PublishDate   *time.Time                       `json:"publish_date"`
 		MetaTags      map[string]models.MetaTag        `json:"meta_tags"`
 	}
 
@@ -65,7 +64,6 @@ func CreatePostHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Post created successfully", "post": post})
 }
 
-// GetAllPostsHandler handles retrieving all posts
 func GetAllPostsHandler(c *gin.Context) {
 	posts, err := services.GetAllPosts(c.Request.Context())
 	if err != nil {
@@ -140,7 +138,7 @@ func UpdatePostHandler(c *gin.Context) {
 		Status        string                           `json:"status"`
 		CategoryIDs   []primitive.ObjectID             `json:"category_ids"`
 		TagIDs        []primitive.ObjectID             `json:"tag_ids"`
-		PublishDate   *primitive.DateTime              `json:"publish_date"`
+		PublishDate   *time.Time                       `json:"publish_date"`
 		MetaTags      map[string]models.MetaTag        `json:"meta_tags"`
 	}
 
