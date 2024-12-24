@@ -100,3 +100,19 @@ func GetPostByLangAndSlug(ctx context.Context, lang string, slug string) (*model
 
 	return &post, nil
 }
+
+// DeletePost deletes a post by its ID from the database
+func DeletePost(ctx context.Context, postID primitive.ObjectID) error {
+	filter := bson.M{"_id": postID}
+
+	result, err := postCollection.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	if result.DeletedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+
+	return nil
+}

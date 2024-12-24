@@ -1,4 +1,467 @@
+definitions:
+  models.LocalizedField:
+    properties:
+      content:
+        type: string
+      slug:
+        type: string
+      title:
+        type: string
+    type: object
+  models.MetaTag:
+    properties:
+      description:
+        type: string
+      keywords:
+        description: Dizi olarak tanımlandı
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    type: object
+  models.Page:
+    type: object
+  models.Post:
+    properties:
+      author_id:
+        type: string
+      category_ids:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      created_by:
+        type: string
+      id:
+        type: string
+      localizations:
+        additionalProperties:
+          $ref: '#/definitions/models.LocalizedField'
+        description: Dil koduna göre içerik
+        type: object
+      meta_tags:
+        additionalProperties:
+          $ref: '#/definitions/models.MetaTag'
+        description: Dil kodu ve SEO bilgileri
+        type: object
+      publish_date:
+        description: Yayınlanma tarihi
+        type: string
+      status:
+        description: draft, published, scheduled
+        type: string
+      tag_ids:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+      updated_by:
+        type: string
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /pages:
+    get:
+      description: Retrieve all pages with their details
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Page'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all pages
+      tags:
+      - Pages
+    post:
+      consumes:
+      - application/json
+      description: Add a new page with its details
+      parameters:
+      - description: Page details
+        in: body
+        name: page
+        required: true
+        schema:
+          $ref: '#/definitions/models.Page'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Page'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new page
+      tags:
+      - Pages
+  /pages/{id}:
+    delete:
+      description: Remove a page by its unique identifier
+      parameters:
+      - description: Page ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a page
+      tags:
+      - Pages
+    get:
+      description: Retrieve a single page by its unique identifier
+      parameters:
+      - description: Page ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Page'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a page by ID
+      tags:
+      - Pages
+    put:
+      consumes:
+      - application/json
+      description: Update a page's details
+      parameters:
+      - description: Page ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated page details
+        in: body
+        name: page
+        required: true
+        schema:
+          $ref: '#/definitions/models.Page'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Page'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a page
+      tags:
+      - Pages
+  /posts:
+    get:
+      description: Retrieve all posts with their details
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Post'
+            type: array
+      summary: Get all posts
+      tags:
+      - Posts
+    post:
+      consumes:
+      - application/json
+      description: Create a new post with localized content, tags, and categories
+      parameters:
+      - description: Post Data
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/models.Post'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Post'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new post
+      tags:
+      - Posts
+  /posts/{id}:
+    delete:
+      description: Remove a post permanently by its unique identifier
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a post
+      tags:
+      - Posts
+    get:
+      description: Retrieve a single post by its unique identifier, with localized
+        content
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Language code for localization (e.g., 'en', 'tr')
+        in: query
+        name: lang
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Post'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a post by ID
+      tags:
+      - Posts
+    put:
+      consumes:
+      - application/json
+      description: Update post details such as localized content, tags, and categories
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Post Data
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/models.Post'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Post'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a post
+      tags:
+      - Posts
+  /posts/filter:
+    get:
+      description: Retrieve posts by category, tag, or status
+      parameters:
+      - description: Category ID to filter posts
+        in: query
+        name: category
+        type: string
+      - description: Tag ID to filter posts
+        in: query
+        name: tag
+        type: string
+      - description: Status to filter posts (e.g., 'draft', 'published')
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Post'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get filtered posts
+      tags:
+      - Posts
+  /posts/lang/{lang}:
+    get:
+      description: Retrieve all posts localized to a specific language
+      parameters:
+      - description: Language code (e.g., 'en', 'tr')
+        in: path
+        name: lang
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Post'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get posts by language
+      tags:
+      - Posts
 swagger: "2.0"

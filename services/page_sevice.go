@@ -51,6 +51,18 @@ func GetAllPages() ([]models.Page, error) {
 	return pages, nil
 }
 
+func GetPageByID(ctx context.Context, pageID primitive.ObjectID) (*models.Page, error) {
+
+	// Sayfayı ID'ye göre arayın
+	var page models.Page
+	err := pageCollection.FindOne(ctx, bson.M{"_id": pageID}).Decode(&page)
+	if err != nil {
+		return nil, err
+	}
+
+	return &page, nil
+}
+
 // UpdatePage updates an existing page
 func UpdatePage(id primitive.ObjectID, update bson.M) (*mongo.UpdateResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
