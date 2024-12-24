@@ -10,6 +10,7 @@ import (
 
 func GraphQLRoutes(router *gin.Engine) {
 	gpqls := router.Group("/admin/roles")
+	gpqls.Use(middlewares.MaintenanceMiddleware()) // Bakım modu kontrolü
 	gpqls.Use(middlewares.AuthMiddleware())
 	gpqls.Use(middlewares.AuthorizeRolesMiddleware("admin"))
 	{

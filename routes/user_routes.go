@@ -9,6 +9,7 @@ import (
 
 func UserRoutes(router *gin.Engine) {
 	users := router.Group("/admin/users")
+	users.Use(middlewares.MaintenanceMiddleware())           // Bakım modu kontrolü
 	users.Use(middlewares.AuthMiddleware())                  // JWT Middleware
 	users.Use(middlewares.AuthorizeRolesMiddleware("admin")) // Sadece adminler erişebilir
 	{

@@ -9,6 +9,7 @@ import (
 
 func PostRoutes(router *gin.Engine) {
 	posts := router.Group("/admin/posts")
+	posts.Use(middlewares.MaintenanceMiddleware()) // Bakım modu kontrolü
 	posts.Use(middlewares.AuthMiddleware())
 	posts.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
 	posts.Use(middlewares.LanguageMiddleware()) // Dil middleware’i ekle

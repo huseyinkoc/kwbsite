@@ -9,7 +9,8 @@ import (
 
 func SettingsRoutes(router *gin.Engine) {
 	settings := router.Group("/settings")
-	settings.Use(middlewares.AuthMiddleware()) // Yetkilendirme
+	settings.Use(middlewares.MaintenanceMiddleware()) // Bakım modu kontrolü
+	settings.Use(middlewares.AuthMiddleware())        // Yetkilendirme
 	{
 		settings.GET("/", controllers.GetSettingsHandler)
 		settings.PUT("/", controllers.UpdateSettingsHandler)

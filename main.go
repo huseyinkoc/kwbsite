@@ -110,6 +110,7 @@ func main() {
 	routes.LanguageRoutes(r)
 	routes.ActivityLogRoutes(r)
 	routes.SettingsRoutes(r)
+	routes.MaintenanceRoutes(r)
 
 	// GraphQL rotası
 	routes.GraphQLRoutes(r)

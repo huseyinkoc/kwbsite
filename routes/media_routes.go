@@ -9,6 +9,7 @@ import (
 
 func MediaRoutes(router *gin.Engine) {
 	media := router.Group("/admin/media")
+	media.Use(middlewares.MaintenanceMiddleware())                     // Bakım modu kontrolü
 	media.Use(middlewares.AuthMiddleware())                            // JWT doğrulama
 	media.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor")) // Yetki kontrolü (admin ve editor)
 

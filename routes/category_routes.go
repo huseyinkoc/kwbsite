@@ -9,6 +9,7 @@ import (
 
 func CategoryRoutes(router *gin.Engine) {
 	categories := router.Group("/admin/categories")
+	categories.Use(middlewares.MaintenanceMiddleware()) // Bakım modu kontrolü
 	categories.Use(middlewares.AuthMiddleware())
 	//categories.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
 	{

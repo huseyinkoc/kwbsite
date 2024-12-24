@@ -9,6 +9,7 @@ import (
 
 func PageRoutes(router *gin.Engine) {
 	pages := router.Group("/admin/pages")
+	pages.Use(middlewares.MaintenanceMiddleware())                     // Bakım modu kontrolü
 	pages.Use(middlewares.AuthMiddleware())                            // JWT kontrolü
 	pages.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor")) // Roller
 	{

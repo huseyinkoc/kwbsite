@@ -9,6 +9,7 @@ import (
 
 func RoleRoutes(router *gin.Engine) {
 	roles := router.Group("/admin/roles")
+	roles.Use(middlewares.MaintenanceMiddleware()) // Bakım modu kontrolü
 	// Yetkilendirme middleware'i
 	roles.Use(middlewares.AuthMiddleware())
 	roles.Use(middlewares.AuthorizeRolesMiddleware("admin")) // Rolleri yalnızca admin yönetebilir

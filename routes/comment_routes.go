@@ -11,6 +11,7 @@ import (
 func RegisterCommentRoutes(router *gin.Engine) {
 
 	commentGroup := router.Group("/admin/comments")
+	commentGroup.Use(middlewares.MaintenanceMiddleware()) // Bakım modu kontrolü
 	commentGroup.Use(middlewares.AuthMiddleware())
 	commentGroup.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
 	{

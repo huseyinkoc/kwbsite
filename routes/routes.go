@@ -27,3 +27,11 @@ func AuthRoutes(router *gin.Engine) {
 		})
 	}
 }
+
+func MaintenanceRoutes(router *gin.Engine) {
+	settings := router.Group("/maintenance")
+	settings.Use(middlewares.AuthMiddleware()) // Yetkilendirme
+	{
+		settings.PUT("/", controllers.ToggleMaintenanceMode)
+	}
+}

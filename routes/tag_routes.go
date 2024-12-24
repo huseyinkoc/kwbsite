@@ -9,6 +9,7 @@ import (
 
 func TagRoutes(router *gin.Engine) {
 	tags := router.Group("/admin/tags")
+	tags.Use(middlewares.MaintenanceMiddleware()) // Bakım modu kontrolü
 	tags.Use(middlewares.AuthMiddleware())
 	tags.Use(middlewares.AuthorizeRolesMiddleware("admin", "editor"))
 	{
