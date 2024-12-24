@@ -26,7 +26,7 @@ func LogActivity(userID primitive.ObjectID, username, module, action, details st
 		Module:    module,
 		Action:    action,
 		Details:   details,
-		Timestamp: primitive.NewDateTimeFromTime(time.Now()),
+		Timestamp: time.Now(),
 	}
 
 	_, err := activityLogCollection.InsertOne(context.Background(), log)

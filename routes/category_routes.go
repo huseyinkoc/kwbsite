@@ -15,5 +15,8 @@ func CategoryRoutes(router *gin.Engine) {
 	{
 		categories.POST("/create", middlewares.CSRFMiddleware(), middlewares.AuthorizeRolesMiddleware("admin"), controllers.CreateCategoryHandler)
 		categories.GET("/", middlewares.CSRFMiddleware(), middlewares.AuthorizeRolesMiddleware("admin", "editor"), controllers.GetAllCategoriesHandler)
+		categories.GET("/:id", controllers.GetCategoryByIDHandler)
+		categories.PUT("/:id", middlewares.CSRFMiddleware(), middlewares.AuthorizeRolesMiddleware("admin", "editor"), controllers.UpdateCategoryHandler)
+		categories.DELETE("/:id", middlewares.CSRFMiddleware(), middlewares.AuthorizeRolesMiddleware("admin", "editor"), controllers.DeleteCategoryHandler)
 	}
 }

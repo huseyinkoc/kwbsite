@@ -24,6 +24,17 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
+// LoginHandler authenticates a user
+// @Summary User login
+// @Description Authenticates a user and returns a JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param login body models.Login true "User login credentials"
+// @Success 200 {object} map[string]interface{} "JWT token and user details"
+// @Failure 400 {object} map[string]interface{} "Invalid credentials"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /auth/login [post]
 func LoginHandler(c *gin.Context) {
 	var input struct {
 		Username string `json:"username" binding:"required"`
@@ -100,6 +111,15 @@ func LoginHandler(c *gin.Context) {
 	})
 }
 
+// SendVerificationEmailHandler sends a verification email to the user
+// @Summary Send verification email
+// @Description Sends a verification email to a specific user
+// @Tags Authentication
+// @Param userID path string true "User ID"
+// @Success 200 {object} map[string]interface{} "Verification email sent"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID"
+// @Failure 500 {object} map[string]interface{} "Failed to send verification email"
+// @Router /auth/send-verification/{userID} [post]
 func SendVerificationEmailHandler(c *gin.Context) {
 	userID := c.Param("userID")
 	objectID, err := primitive.ObjectIDFromHex(userID)
@@ -123,6 +143,14 @@ func SendVerificationEmailHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Verification email sent"})
 }
 
+// VerifyEmailHandler verifies a user's email
+// @Summary Verify email
+// @Description Verifies a user's email using a token
+// @Tags Authentication
+// @Param token query string true "Verification token"
+// @Success 200 {object} map[string]interface{} "Email verified successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid or expired token"
+// @Router /auth/verify-email [get]
 func VerifyEmailHandler(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
@@ -139,6 +167,18 @@ func VerifyEmailHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Email verified successfully"})
 }
 
+// RequestPasswordResetHandler handles password reset requests
+// @Summary Request password reset
+// @Description Sends a password reset email to the user
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param email body models.RequestPasswordReset true "User email"
+// @Success 200 {object} map[string]interface{} "Password reset email sent"
+// @Failure 400 {object} map[string]interface{} "Invalid request payload"
+// @Failure 404 {object} map[string]interface{} "Email not found"
+// @Failure 500 {object} map[string]interface{} "Failed to send password reset email"
+// @Router /auth/request-password-reset [post]
 func RequestPasswordResetHandler(c *gin.Context) {
 	var request struct {
 		Email string `json:"email"`
@@ -175,6 +215,18 @@ func RequestPasswordResetHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Password reset email sent"})
 }
 
+// ResetPasswordHandler resets a user's password
+// @Summary Reset password
+// @Description Resets a user's password using a valid reset token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param token query string true "Password reset token"
+// @Param request body models.ResetPasswordRequest true "New password"
+// @Success 200 {object} map[string]interface{} "Password updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request payload or token"
+// @Failure 500 {object} map[string]interface{} "Failed to update password"
+// @Router /auth/reset-password [post]
 func ResetPasswordHandler(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {

@@ -12,7 +12,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// CreateCommentHandler yeni bir yorum oluşturur
+// CreateCommentHandler creates a new comment
+// @Summary Create a new comment
+// @Description Add a new comment to a post or as a reply
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param comment body models.Comment true "Comment body"
+// @Success 200 {object} map[string]interface{} "Comment created successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /comments [post]
 func CreateCommentHandler(c *gin.Context) {
 	var comment models.Comment
 	if err := c.ShouldBindJSON(&comment); err != nil {
@@ -102,6 +112,18 @@ func GetCommentsByPostIDHandler(c *gin.Context) {
 }
 */
 
+// GetCommentsByPostIDHandler retrieves comments for a specific post
+// @Summary Get comments by post ID
+// @Description Retrieve all comments for a specific post
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param post_id path string true "Post ID"
+// @Success 200 {array} models.Comment
+// @Failure 400 {object} map[string]interface{} "Bad Request"
+// @Failure 404 {object} map[string]interface{} "Comments not found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /comments/{post_id} [get]
 func GetCommentsByPostIDHandler(c *gin.Context) {
 	postID := c.Param("postID")
 
@@ -129,7 +151,19 @@ func GetCommentsByPostIDHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"page": page, "limit": limit, "comments": comments})
 }
 
-// AddReplyHandler bir yoruma cevap ekler
+// AddReplyHandler adds a reply to a comment
+// @Summary Add a reply to a comment
+// @Description Add a reply to a specific comment by its ID
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param comment_id path string true "Comment ID"
+// @Param reply body models.Comment true "Reply body"
+// @Success 200 {object} map[string]interface{} "Reply added successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request"
+// @Failure 404 {object} map[string]interface{} "Comment not found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /comments/{comment_id}/reply [post]
 func AddReplyHandler(c *gin.Context) {
 	commentID := c.Param("commentID")
 
@@ -189,6 +223,19 @@ func AddReplyHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Reply added successfully", "reply_id": replyID})
 }
 
+// AddReactionHandler adds a reaction to a comment
+// @Summary Add a reaction to a comment
+// @Description Add a reaction (e.g., like, dislike, emoji) to a comment by its ID
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param comment_id path string true "Comment ID"
+// @Param reaction query string true "Reaction (e.g., 😊, 😡, ❤️)"
+// @Success 200 {object} map[string]interface{} "Reaction added successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request"
+// @Failure 404 {object} map[string]interface{} "Comment not found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /comments/{comment_id}/reaction [post]
 func AddReactionHandler(c *gin.Context) {
 	commentID := c.Param("commentID")
 	reaction := c.Query("reaction") // İfade parametresi (örneğin: 😊, 😡, ❤️)
@@ -216,7 +263,18 @@ func AddReactionHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Reaction added successfully"})
 }
 
-// LikeCommentHandler bir yorumu beğenmek için kullanılır
+// LikeCommentHandler likes a comment
+// @Summary Like a comment
+// @Description Add a like to a specific comment by its ID
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param comment_id path string true "Comment ID"
+// @Success 200 {object} map[string]interface{} "Comment liked successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request"
+// @Failure 404 {object} map[string]interface{} "Comment not found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /comments/{comment_id}/like [post]
 func LikeCommentHandler(c *gin.Context) {
 	commentID := c.Param("commentID")
 
@@ -236,6 +294,16 @@ func LikeCommentHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Comment liked"})
 }
 
+// DeleteCommentHandler deletes a specific comment
+// @Summary Delete a comment
+// @Description Delete a comment by its ID
+// @Tags Comments
+// @Param comment_id path string true "Comment ID"
+// @Success 200 {object} map[string]interface{} "Comment deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request"
+// @Failure 404 {object} map[string]interface{} "Comment not found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /comments/{comment_id} [delete]
 func DeleteCommentHandler(c *gin.Context) {
 	commentID := c.Param("commentID")
 
@@ -256,6 +324,20 @@ func DeleteCommentHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Comment deleted successfully"})
 }
 
+// UpdateCommentHandler updates a comment
+// @Summary Update a comment
+// @Description Update a comment by its ID
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Comment updated successfully"
+// @Param comment_id path string true "Comment ID"
+// @Param comment body models.Comment true "Updated comment body"
+// @Success 200 {object} map[string]interface{} "Comment updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request"
+// @Failure 404 {object} map[string]interface{} "Comment not found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /comments/{comment_id} [put]
 func UpdateCommentHandler(c *gin.Context) {
 	commentID := c.Param("commentID")
 

@@ -1,6 +1,10 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // ActivityLog represents a user activity log
 type ActivityLog struct {
@@ -10,5 +14,5 @@ type ActivityLog struct {
 	Module    string             `bson:"module" json:"module"`       // Modül adı (örnek: posts, comments)
 	Action    string             `bson:"action" json:"action"`       // Eylem türü (örnek: create, update, delete)
 	Details   string             `bson:"details" json:"details"`     // Ek detaylar
-	Timestamp primitive.DateTime `bson:"timestamp" json:"timestamp"` // Zaman damgası
+	Timestamp time.Time          `bson:"timestamp" json:"timestamp"` // Zaman damgası
 }

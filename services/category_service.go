@@ -59,3 +59,26 @@ func GetAllCategories() ([]models.Category, error) {
 	}
 	return categories, nil
 }
+
+func GetCategoryByID(ctx context.Context, categoryID primitive.ObjectID) (*models.Category, error) {
+	var category models.Category
+	err := categoryCollection.FindOne(ctx, bson.M{"_id": categoryID}).Decode(&category)
+	if err != nil {
+		return nil, err
+	}
+	return &category, nil
+}
+
+func UpdateCategory(ctx context.Context, categoryID primitive.ObjectID, updatedCategory *models.Category) error {
+	_, err := categoryCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": categoryID},
+		bson.M{"$set": updatedCategory},
+	)
+	return err
+}
+
+func DeleteCategory(ctx context.Context, categoryID primitive.ObjectID) error {
+	_, err := categoryCollection.DeleteOne(ctx, bson.M{"_id": categoryID})
+	return err
+}

@@ -16,3 +16,16 @@ type User struct {
 	Password          string             `bson:"password" json:"password" binding:"required"`
 	Roles             []string           `bson:"roles" json:"roles" binding:"required"` // ["admin", "editor", "user"]
 }
+
+type ResetPasswordRequest struct {
+	NewPassword string `json:"new_password" example:"newpassword123"`
+}
+
+type RequestPasswordReset struct {
+	Email string `json:"email" example:"abc@mail.com"`
+}
+
+type Login struct {
+	Username string `json:"username" example:"mustafakemal"`
+	Password string `json:"password" example:"ADsdsasWDD!!!8"`
+}
