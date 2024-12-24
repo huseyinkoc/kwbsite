@@ -15,4 +15,10 @@ func SettingsRoutes(router *gin.Engine) {
 		settings.GET("/", controllers.GetSettingsHandler)
 		settings.PUT("/", controllers.UpdateSettingsHandler)
 	}
+	links := router.Group("/settings/social-media")
+	links.Use(middlewares.AuthMiddleware()) // Yetkilendirme
+	{
+		links.GET("/", controllers.GetSocialMediaLinksHandler)
+		links.PUT("/", controllers.UpdateSocialMediaLinksHandler)
+	}
 }

@@ -34,3 +34,20 @@ func UpdateSettings(update bson.M, updatedBy string) error {
 	_, err := settingsCollection.UpdateOne(context.Background(), bson.M{}, bson.M{"$set": update}, opts)
 	return err
 }
+
+func GetSocialMediaLinks() (map[string]models.SocialMedia, error) {
+	settings, err := GetSettings()
+	if err != nil {
+		return nil, err
+	}
+	return settings.SocialMedia, nil
+}
+
+func UpdateSocialMediaLinks(links map[string]models.SocialMedia, updatedBy string) error {
+	update := bson.M{
+		"social_media": links,
+		"updated_at":   primitive.NewDateTimeFromTime(time.Now()),
+		"updated_by":   updatedBy,
+	}
+	return UpdateSettings(update, updatedBy)
+}
