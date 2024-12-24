@@ -65,6 +65,7 @@ func main() {
 	services.InitLanguageService(configs.DB)
 	services.InitActivityLogService(configs.DB)
 	services.InitSettingsService(configs.DB)
+	services.InitSliderService(configs.DB)
 
 	log.Println("Tüm servisler başarıyla başlatıldı.")
 
@@ -111,6 +112,7 @@ func main() {
 	routes.ActivityLogRoutes(r)
 	routes.SettingsRoutes(r)
 	routes.MaintenanceRoutes(r)
+	routes.SliderRoutes(r)
 
 	// GraphQL rotası
 	routes.GraphQLRoutes(r)
