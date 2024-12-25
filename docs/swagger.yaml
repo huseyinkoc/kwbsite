@@ -52,6 +52,36 @@ definitions:
       user_id:
         type: string
     type: object
+  models.ContactMessage:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      resolved_by:
+        type: string
+      status:
+        description: '"new", "in_progress", "resolved"'
+        type: string
+      subject:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - email
+    - message
+    - name
+    type: object
+  models.Language:
+    type: object
+  models.LocalizedContent:
+    type: object
   models.LocalizedField:
     properties:
       content:
@@ -69,6 +99,15 @@ definitions:
       username:
         example: mustafakemal
         type: string
+    type: object
+  models.MaintenanceToggleMode:
+    properties:
+      enable:
+        type: boolean
+      message:
+        additionalProperties:
+          type: string
+        type: object
     type: object
   models.MetaTag:
     properties:
@@ -742,6 +781,346 @@ paths:
       summary: Get comments by post ID
       tags:
       - Comments
+  /contacts:
+    get:
+      description: Retrieve all contact messages sent by users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ContactMessage'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all contact messages
+      tags:
+      - Contacts
+    post:
+      consumes:
+      - application/json
+      description: Add a new contact message sent by a user
+      parameters:
+      - description: Contact message details
+        in: body
+        name: contact
+        required: true
+        schema:
+          $ref: '#/definitions/models.ContactMessage'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ContactMessage'
+        "400":
+          description: Invalid request payload
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new contact message
+      tags:
+      - Contacts
+  /contacts/{id}:
+    delete:
+      description: Remove a contact message by its unique identifier
+      parameters:
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid contact ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Contact message not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a contact message
+      tags:
+      - Contacts
+    get:
+      description: Retrieve a single contact message by its unique identifier
+      parameters:
+      - description: Contact Message ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ContactMessage'
+        "400":
+          description: Invalid contact ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Contact message not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a contact message by ID
+      tags:
+      - Contacts
+  /languages:
+    get:
+      description: Retrieve all languages, including active and default configurations
+      parameters:
+      - description: Active language code (e.g., 'en', 'tr')
+        in: query
+        name: lang
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of languages with active and default settings
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to retrieve languages
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all languages
+      tags:
+      - Languages
+    post:
+      consumes:
+      - application/json
+      description: Add a new language configuration
+      parameters:
+      - description: Language configuration
+        in: body
+        name: language
+        required: true
+        schema:
+          $ref: '#/definitions/models.Language'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Language created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request payload
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to create language
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new language
+      tags:
+      - Languages
+  /languages/{id}:
+    delete:
+      description: Remove a language configuration by its ID
+      parameters:
+      - description: Language ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Language deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid language ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to delete language
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a language
+      tags:
+      - Languages
+    put:
+      consumes:
+      - application/json
+      description: Update an existing language configuration by its ID
+      parameters:
+      - description: Language ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated language fields
+        in: body
+        name: update
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Language updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid language ID or request payload
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update language
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a language
+      tags:
+      - Languages
+  /localized-content:
+    post:
+      consumes:
+      - application/json
+      description: Add new localized content with translations
+      parameters:
+      - description: Localized content details
+        in: body
+        name: content
+        required: true
+        schema:
+          $ref: '#/definitions/models.LocalizedContent'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Content created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request payload
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to create content
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create localized content
+      tags:
+      - Localized Content
+  /localized-content/{id}:
+    get:
+      description: Retrieve localized content in a specific language
+      parameters:
+      - description: Localized Content ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Language code (e.g., 'en', 'tr')
+        in: query
+        name: lang
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Localized content details
+          schema:
+            $ref: '#/definitions/models.LocalizedField'
+        "400":
+          description: Invalid content ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Content not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to fetch content
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get localized content by ID
+      tags:
+      - Localized Content
+  /maintenance:
+    post:
+      consumes:
+      - application/json
+      description: Enable or disable maintenance mode with a multilingual message
+      parameters:
+      - description: Maintenance mode settings
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.MaintenanceToggleMode'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Maintenance mode status updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request payload
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update maintenance mode
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Toggle maintenance mode
+      tags:
+      - Maintenance
   /pages:
     get:
       description: Retrieve all pages with their details

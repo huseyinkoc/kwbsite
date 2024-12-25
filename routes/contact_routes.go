@@ -16,6 +16,7 @@ func ContactRoutes(router *gin.Engine) {
 		contacts.POST("/", middlewares.CSRFMiddleware(), controllers.CreateContactMessageHandler)
 		contacts.GET("/", controllers.GetAllContactMessagesHandler)
 		contacts.PUT("/:id", middlewares.CSRFMiddleware(), controllers.UpdateContactMessageStatusHandler)
+		contacts.GET("/:id", controllers.GetContactByIDHandler)
 		contacts.DELETE("/:id", middlewares.CSRFMiddleware(), controllers.DeleteContactMessageHandler)
 	}
 }

@@ -7,6 +7,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ToggleMaintenanceMode toggles maintenance mode with a multilingual message
+// @Summary Toggle maintenance mode
+// @Description Enable or disable maintenance mode with a multilingual message
+// @Tags Maintenance
+// @Accept json
+// @Produce json
+//
+//	@Param input body models.MaintenanceToggleMode true "Maintenance mode settings"
+//
+// @Success 200 {object} map[string]interface{} "Maintenance mode status updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request payload"
+// @Failure 500 {object} map[string]interface{} "Failed to update maintenance mode"
+// @Router /maintenance [post]
 func ToggleMaintenanceMode(c *gin.Context) {
 	var input struct {
 		Enable  bool              `json:"enable"`

@@ -26,3 +26,8 @@ type SocialMedia struct {
 	URL    string `bson:"url" json:"url"`       // Örnek: https://facebook.com/yourpage
 	Active bool   `bson:"active" json:"active"` // Aktif mi?
 }
+
+type MaintenanceToggleMode struct {
+	Enable  bool              `json:"enable" example:true`
+	Message map[string]string `json:"message" example:{"message": "Maintenance mode enabled"}`
+}

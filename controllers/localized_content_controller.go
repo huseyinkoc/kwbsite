@@ -9,7 +9,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// CreateLocalizedContentHandler handles creating new localized content
+// CreateLocalizedContentHandler creates a new localized content entry
+// @Summary Create localized content
+// @Description Add new localized content with translations
+// @Tags Localized Content
+// @Accept json
+// @Produce json
+// @Param content body models.LocalizedContent true "Localized content details"
+// @Success 200 {object} map[string]interface{} "Content created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request payload"
+// @Failure 500 {object} map[string]interface{} "Failed to create content"
+// @Router /localized-content [post]
 func CreateLocalizedContentHandler(c *gin.Context) {
 	var input models.LocalizedContent
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -26,7 +36,18 @@ func CreateLocalizedContentHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Content created successfully"})
 }
 
-// GetLocalizedContentHandler handles retrieving localized content by ID and language
+// GetLocalizedContentHandler retrieves localized content by ID and language
+// @Summary Get localized content by ID
+// @Description Retrieve localized content in a specific language
+// @Tags Localized Content
+// @Produce json
+// @Param id path string true "Localized Content ID"
+// @Param lang query string false "Language code (e.g., 'en', 'tr')"
+// @Success 200 {object} models.LocalizedField "Localized content details"
+// @Failure 400 {object} map[string]interface{} "Invalid content ID"
+// @Failure 404 {object} map[string]interface{} "Content not found"
+// @Failure 500 {object} map[string]interface{} "Failed to fetch content"
+// @Router /localized-content/{id} [get]
 func GetLocalizedContentHandler(c *gin.Context) {
 	id := c.Param("id")
 	lang := c.DefaultQuery("lang", "en")

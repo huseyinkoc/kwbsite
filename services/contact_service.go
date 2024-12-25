@@ -65,6 +65,18 @@ func UpdateContactMessageStatus(ctx context.Context, id string, status string, r
 	return err
 }
 
+func GetContactByID(ctx context.Context, contactID primitive.ObjectID) (*models.ContactMessage, error) {
+	var contact models.ContactMessage
+
+	// MongoDB sorgusu
+	err := contactCollection.FindOne(ctx, bson.M{"_id": contactID}).Decode(&contact)
+	if err != nil {
+		return nil, err
+	}
+
+	return &contact, nil
+}
+
 func DeleteContactMessage(ctx context.Context, id string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
