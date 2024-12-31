@@ -24,7 +24,7 @@ import (
 // @Success 201 {object} models.Media "File uploaded successfully"
 // @Failure 400 {object} map[string]interface{} "No file uploaded or invalid request"
 // @Failure 500 {object} map[string]interface{} "Failed to save file or record"
-// @Router /admin/media/upload [post]
+// @Router /media/upload [post]
 func UploadMediaHandler(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -75,7 +75,7 @@ func UploadMediaHandler(c *gin.Context) {
 // @Produce json
 // @Success 200 {array} models.Media "List of media files"
 // @Failure 500 {object} map[string]interface{} "Failed to retrieve media files"
-// @Router /admin/media [get]
+// @Router /media [get]
 func GetAllMediaHandler(c *gin.Context) {
 	media, err := services.GetAllMedia()
 	if err != nil {
@@ -95,7 +95,7 @@ func GetAllMediaHandler(c *gin.Context) {
 // @Failure 400 {object} map[string]interface{} "Invalid media ID"
 // @Failure 404 {object} map[string]interface{} "Media file not found"
 // @Failure 500 {object} map[string]interface{} "Failed to delete media file"
-// @Router /admin/media/{id} [delete]
+// @Router /media/{id} [delete]
 func DeleteMediaHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := primitive.ObjectIDFromHex(idParam)
@@ -130,7 +130,7 @@ func DeleteMediaHandler(c *gin.Context) {
 // @Failure 400 {object} map[string]interface{} "Invalid media ID"
 // @Failure 404 {object} map[string]interface{} "Media file not found"
 // @Failure 500 {object} map[string]interface{} "Failed to retrieve media details"
-// @Router /admin/media/{id} [get]
+// @Router /media/{id} [get]
 func GetMediaDetailHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := primitive.ObjectIDFromHex(idParam)
@@ -159,7 +159,7 @@ func GetMediaDetailHandler(c *gin.Context) {
 // @Param end_date query string false "End date for upload filter (YYYY-MM-DD)"
 // @Success 200 {array} models.Media "Filtered list of media files"
 // @Failure 500 {object} map[string]interface{} "Failed to retrieve filtered media files"
-// @Router /admin/media/filter [get]
+// @Router /media/filter [get]
 func GetFilteredMediaHandler(c *gin.Context) {
 	// Sorgu parametrelerini al
 	fileName := c.Query("file_name")

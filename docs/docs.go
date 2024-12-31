@@ -45,230 +45,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/media": {
-            "get": {
-                "description": "Retrieve all media files in the library",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "Get all media files",
-                "responses": {
-                    "200": {
-                        "description": "List of media files",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Media"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to retrieve media files",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/admin/media/filter": {
-            "get": {
-                "description": "Retrieve media files filtered by file name, type, or upload date",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "Filter media files",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Filter by file name",
-                        "name": "file_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by file type",
-                        "name": "file_type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Start date for upload filter (YYYY-MM-DD)",
-                        "name": "start_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "End date for upload filter (YYYY-MM-DD)",
-                        "name": "end_date",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Filtered list of media files",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Media"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to retrieve filtered media files",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/admin/media/upload": {
-            "post": {
-                "description": "Upload a file to the media library",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "Upload a new media file",
-                "parameters": [
-                    {
-                        "type": "file",
-                        "description": "Media file to upload",
-                        "name": "file",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "File uploaded successfully",
-                        "schema": {
-                            "$ref": "#/definitions/models.Media"
-                        }
-                    },
-                    "400": {
-                        "description": "No file uploaded or invalid request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to save file or record",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/admin/media/{id}": {
-            "get": {
-                "description": "Retrieve details of a specific media file by its ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "Get media details",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Media file ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media file details",
-                        "schema": {
-                            "$ref": "#/definitions/models.Media"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid media ID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Media file not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to retrieve media details",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Remove a specific media file by its ID",
-                "tags": [
-                    "Media"
-                ],
-                "summary": "Delete media file",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Media file ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Invalid media ID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Media file not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to delete media file",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/auth/login": {
             "post": {
                 "description": "Authenticates a user and returns a JWT token",
@@ -1618,6 +1394,230 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Failed to update maintenance mode",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/media": {
+            "get": {
+                "description": "Retrieve all media files in the library",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Get all media files",
+                "responses": {
+                    "200": {
+                        "description": "List of media files",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Media"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve media files",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/media/filter": {
+            "get": {
+                "description": "Retrieve media files filtered by file name, type, or upload date",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Filter media files",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by file name",
+                        "name": "file_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by file type",
+                        "name": "file_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start date for upload filter (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date for upload filter (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Filtered list of media files",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Media"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve filtered media files",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/media/upload": {
+            "post": {
+                "description": "Upload a file to the media library",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Upload a new media file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Media file to upload",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "File uploaded successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Media"
+                        }
+                    },
+                    "400": {
+                        "description": "No file uploaded or invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to save file or record",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/media/{id}": {
+            "get": {
+                "description": "Retrieve details of a specific media file by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Get media details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Media file ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media file details",
+                        "schema": {
+                            "$ref": "#/definitions/models.Media"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid media ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Media file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve media details",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove a specific media file by its ID",
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Delete media file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Media file ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Invalid media ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Media file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete media file",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true

@@ -418,157 +418,6 @@ paths:
       summary: Get all activity logs
       tags:
       - Activity Logs
-  /admin/media:
-    get:
-      description: Retrieve all media files in the library
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of media files
-          schema:
-            items:
-              $ref: '#/definitions/models.Media'
-            type: array
-        "500":
-          description: Failed to retrieve media files
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get all media files
-      tags:
-      - Media
-  /admin/media/{id}:
-    delete:
-      description: Remove a specific media file by its ID
-      parameters:
-      - description: Media file ID
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Invalid media ID
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Media file not found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Failed to delete media file
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Delete media file
-      tags:
-      - Media
-    get:
-      description: Retrieve details of a specific media file by its ID
-      parameters:
-      - description: Media file ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Media file details
-          schema:
-            $ref: '#/definitions/models.Media'
-        "400":
-          description: Invalid media ID
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Media file not found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Failed to retrieve media details
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get media details
-      tags:
-      - Media
-  /admin/media/filter:
-    get:
-      description: Retrieve media files filtered by file name, type, or upload date
-      parameters:
-      - description: Filter by file name
-        in: query
-        name: file_name
-        type: string
-      - description: Filter by file type
-        in: query
-        name: file_type
-        type: string
-      - description: Start date for upload filter (YYYY-MM-DD)
-        in: query
-        name: start_date
-        type: string
-      - description: End date for upload filter (YYYY-MM-DD)
-        in: query
-        name: end_date
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Filtered list of media files
-          schema:
-            items:
-              $ref: '#/definitions/models.Media'
-            type: array
-        "500":
-          description: Failed to retrieve filtered media files
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Filter media files
-      tags:
-      - Media
-  /admin/media/upload:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload a file to the media library
-      parameters:
-      - description: Media file to upload
-        in: formData
-        name: file
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: File uploaded successfully
-          schema:
-            $ref: '#/definitions/models.Media'
-        "400":
-          description: No file uploaded or invalid request
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Failed to save file or record
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Upload a new media file
-      tags:
-      - Media
   /auth/login:
     post:
       consumes:
@@ -1493,6 +1342,157 @@ paths:
       summary: Toggle maintenance mode
       tags:
       - Maintenance
+  /media:
+    get:
+      description: Retrieve all media files in the library
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of media files
+          schema:
+            items:
+              $ref: '#/definitions/models.Media'
+            type: array
+        "500":
+          description: Failed to retrieve media files
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all media files
+      tags:
+      - Media
+  /media/{id}:
+    delete:
+      description: Remove a specific media file by its ID
+      parameters:
+      - description: Media file ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid media ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Media file not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to delete media file
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete media file
+      tags:
+      - Media
+    get:
+      description: Retrieve details of a specific media file by its ID
+      parameters:
+      - description: Media file ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media file details
+          schema:
+            $ref: '#/definitions/models.Media'
+        "400":
+          description: Invalid media ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Media file not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to retrieve media details
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get media details
+      tags:
+      - Media
+  /media/filter:
+    get:
+      description: Retrieve media files filtered by file name, type, or upload date
+      parameters:
+      - description: Filter by file name
+        in: query
+        name: file_name
+        type: string
+      - description: Filter by file type
+        in: query
+        name: file_type
+        type: string
+      - description: Start date for upload filter (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End date for upload filter (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Filtered list of media files
+          schema:
+            items:
+              $ref: '#/definitions/models.Media'
+            type: array
+        "500":
+          description: Failed to retrieve filtered media files
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Filter media files
+      tags:
+      - Media
+  /media/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a file to the media library
+      parameters:
+      - description: Media file to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: File uploaded successfully
+          schema:
+            $ref: '#/definitions/models.Media'
+        "400":
+          description: No file uploaded or invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to save file or record
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Upload a new media file
+      tags:
+      - Media
   /menus:
     get:
       description: Retrieve all menus, including frontend and backend menus

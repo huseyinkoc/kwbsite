@@ -8,7 +8,7 @@ import (
 )
 
 func ContactRoutes(router *gin.Engine) {
-	contacts := router.Group("/admin/contact")
+	contacts := router.Group("/contact")
 	contacts.Use(middlewares.MaintenanceMiddleware()) // Bakım modu kontrolü
 	contacts.Use(middlewares.AuthMiddleware())
 	contacts.Use(middlewares.AuthorizeRolesMiddleware("admin"))
