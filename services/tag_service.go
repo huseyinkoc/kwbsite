@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -42,4 +43,23 @@ func GetAllTags() ([]models.Tag, error) {
 		tags = append(tags, tag)
 	}
 	return tags, nil
+}
+func GetTagByID(ctx context.Context, tagID primitive.ObjectID) (*models.Tag, error) {
+	var tag models.Tag
+	err := tagCollection.FindOne(ctx, bson.M{"_id": tagID}).Decode(&tag)
+	return &tag, err
+}
+
+func UpdateTag(ctx context.Context, tagID primitive.ObjectID, updatedTag *models.Tag) error {
+	_, err := tagCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": tagID},
+		bson.M{"$set": updatedTag},
+	)
+	return err
+}
+
+func DeleteTag(ctx context.Context, tagID primitive.ObjectID) error {
+	_, err := tagCollection.DeleteOne(ctx, bson.M{"_id": tagID})
+	return err
 }

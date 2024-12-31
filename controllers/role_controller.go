@@ -10,7 +10,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CreateRoleHandler handles role creation
+// CreateRoleHandler creates a new role
+// @Summary Create a new role
+// @Description Add a new role with its permissions and details
+// @Tags Roles
+// @Accept json
+// @Produce json
+// @Param role body models.Role true "Role details"
+// @Success 201 {object} models.Role "Role created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request payload"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Failed to create role"
+// @Router /roles [post]
 func CreateRoleHandler(c *gin.Context) {
 	var role models.Role
 
@@ -41,6 +52,13 @@ func CreateRoleHandler(c *gin.Context) {
 }
 
 // GetAllRolesHandler retrieves all roles
+// @Summary Get all roles
+// @Description Retrieve all roles with their permissions and details
+// @Tags Roles
+// @Produce json
+// @Success 200 {array} models.Role "List of roles"
+// @Failure 500 {object} map[string]interface{} "Failed to retrieve roles"
+// @Router /roles [get]
 func GetAllRolesHandler(c *gin.Context) {
 	roles, err := services.GetAllRoles(c.Request.Context())
 	if err != nil {
@@ -52,7 +70,20 @@ func GetAllRolesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, roles)
 }
 
-// UpdateRoleHandler handles role updates
+// UpdateRoleHandler updates an existing role
+// @Summary Update a role
+// @Description Update role details, including permissions
+// @Tags Roles
+// @Accept json
+// @Produce json
+// @Param id path string true "Role ID"
+// @Param update body map[string]interface{} true "Updated role details"
+// @Success 200 {object} map[string]interface{} "Role updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid role ID or request payload"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Role not found"
+// @Failure 500 {object} map[string]interface{} "Failed to update role"
+// @Router /roles/{id} [put]
 func UpdateRoleHandler(c *gin.Context) {
 	id := c.Param("id")
 
@@ -84,7 +115,16 @@ func UpdateRoleHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Role updated successfully"})
 }
 
-// DeleteRoleHandler handles role deletion
+// DeleteRoleHandler deletes a role by ID
+// @Summary Delete a role
+// @Description Remove a role by its unique identifier
+// @Tags Roles
+// @Param id path string true "Role ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]interface{} "Invalid role ID"
+// @Failure 404 {object} map[string]interface{} "Role not found"
+// @Failure 500 {object} map[string]interface{} "Failed to delete role"
+// @Router /roles/{id} [delete]
 func DeleteRoleHandler(c *gin.Context) {
 	id := c.Param("id")
 

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -27,7 +26,7 @@ func GetSettings() (*models.ApplicationSettings, error) {
 }
 
 func UpdateSettings(update bson.M, updatedBy string) error {
-	update["updated_at"] = primitive.NewDateTimeFromTime(time.Now())
+	update["updated_at"] = time.Now()
 	update["updated_by"] = updatedBy
 
 	opts := options.Update().SetUpsert(true) // Upsert seçeneğini etkinleştir
@@ -46,7 +45,7 @@ func GetSocialMediaLinks() (map[string]models.SocialMedia, error) {
 func UpdateSocialMediaLinks(links map[string]models.SocialMedia, updatedBy string) error {
 	update := bson.M{
 		"social_media": links,
-		"updated_at":   primitive.NewDateTimeFromTime(time.Now()),
+		"updated_at":   time.Now(),
 		"updated_by":   updatedBy,
 	}
 	return UpdateSettings(update, updatedBy)

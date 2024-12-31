@@ -8,7 +8,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// GetNotificationsHandler kullanıcıya ait bildirimleri döndürür
+// CreateNotificationHandler creates a new notification
+// @Summary Create a new notification
+// @Description Add a notification for a specific user or action
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Param notification body models.Notification true "Notification details"
+// @Success 201 {object} models.Notification "Notification created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request payload"
+// @Failure 500 {object} map[string]interface{} "Failed to create notification"
+// @Router /notifications [post]
 func GetNotificationsHandler(c *gin.Context) {
 	// Context'ten userID al
 	userID, exists := c.Get("userID")

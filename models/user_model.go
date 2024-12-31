@@ -29,3 +29,8 @@ type Login struct {
 	Username string `json:"username" example:"mustafakemal"`
 	Password string `json:"password" example:"ADsdsasWDD!!!8"`
 }
+
+// PreferredLanguageRequest represents a request to update the preferred language
+type PreferredLanguageRequest struct {
+	LanguageCode string `json:"language_code" binding:"required" example:"en"`
+}

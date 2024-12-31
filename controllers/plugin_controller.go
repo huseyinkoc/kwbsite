@@ -11,6 +11,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// CreatePluginHandler creates a new plugin
+// @Summary Create a new plugin
+// @Description Add a new plugin to the system
+// @Tags Plugins
+// @Accept json
+// @Produce json
+// @Param plugin body models.Plugin true "Plugin details"
+// @Success 201 {object} models.Plugin "Plugin created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request payload"
+// @Failure 500 {object} map[string]interface{} "Failed to create plugin"
+// @Router /plugins [post]
 func CreatePluginHandler(c *gin.Context) {
 	var plugin models.Plugin
 	if err := c.ShouldBindJSON(&plugin); err != nil {
@@ -26,6 +37,14 @@ func CreatePluginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Plugin created successfully"})
 }
 
+// GetAllPluginsHandler retrieves all plugins
+// @Summary Get all plugins
+// @Description Retrieve all plugins available in the system
+// @Tags Plugins
+// @Produce json
+// @Success 200 {array} models.Plugin "List of plugins"
+// @Failure 500 {object} map[string]interface{} "Failed to retrieve plugins"
+// @Router /plugins [get]
 func GetAllPluginsHandler(c *gin.Context) {
 	plugins, err := services.GetAllPlugins()
 	if err != nil {
@@ -36,6 +55,19 @@ func GetAllPluginsHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"plugins": plugins})
 }
 
+// UpdatePluginHandler updates an existing plugin
+// @Summary Update a plugin
+// @Description Update plugin details by its ID
+// @Tags Plugins
+// @Accept json
+// @Produce json
+// @Param id path string true "Plugin ID"
+// @Param update body map[string]interface{} true "Updated plugin details"
+// @Success 200 {object} map[string]interface{} "Plugin updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid plugin ID or request payload"
+// @Failure 404 {object} map[string]interface{} "Plugin not found"
+// @Failure 500 {object} map[string]interface{} "Failed to update plugin"
+// @Router /plugins/{id} [put]
 func UpdatePluginHandler(c *gin.Context) {
 	id := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -58,6 +90,16 @@ func UpdatePluginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Plugin updated successfully"})
 }
 
+// DeletePluginHandler deletes a plugin by ID
+// @Summary Delete a plugin
+// @Description Remove a plugin by its unique identifier
+// @Tags Plugins
+// @Param id path string true "Plugin ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]interface{} "Invalid plugin ID"
+// @Failure 404 {object} map[string]interface{} "Plugin not found"
+// @Failure 500 {object} map[string]interface{} "Failed to delete plugin"
+// @Router /plugins/{id} [delete]
 func DeletePluginHandler(c *gin.Context) {
 	id := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -74,6 +116,17 @@ func DeletePluginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Plugin deleted successfully"})
 }
 
+// UploadPluginHandler uploads a new plugin file
+// @Summary Upload a new plugin
+// @Description Upload a plugin file (.so) to the system
+// @Tags Plugins
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Plugin file (.so format)"
+// @Success 201 {object} map[string]interface{} "Plugin uploaded successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid file format or no file uploaded"
+// @Failure 500 {object} map[string]interface{} "Failed to upload plugin file"
+// @Router /plugins/upload [post]
 func UploadPluginHandler(c *gin.Context) {
 	// Dosya yükleme
 	file, err := c.FormFile("file")
@@ -107,6 +160,14 @@ func UploadPluginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Plugin uploaded successfully", "file": file.Filename})
 }
 
+// ListUploadedPluginsHandler lists all uploaded plugin files
+// @Summary List uploaded plugins
+// @Description Retrieve a list of all uploaded plugin files in the system
+// @Tags Plugins
+// @Produce json
+// @Success 200 {array} map[string]interface{} "List of uploaded plugins"
+// @Failure 500 {object} map[string]interface{} "Failed to retrieve uploaded plugins"
+// @Router /plugins/uploaded [get]
 func ListUploadedPluginsHandler(c *gin.Context) {
 	plugins, err := services.ListUploadedPlugins()
 	if err != nil {
@@ -117,6 +178,16 @@ func ListUploadedPluginsHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"plugins": plugins})
 }
 
+// EnablePluginHandler enables a plugin
+// @Summary Enable a plugin
+// @Description Enable a specific plugin by its ID
+// @Tags Plugins
+// @Param id path string true "Plugin ID"
+// @Success 200 {object} map[string]interface{} "Plugin enabled successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid plugin ID"
+// @Failure 404 {object} map[string]interface{} "Plugin not found"
+// @Failure 500 {object} map[string]interface{} "Failed to enable plugin"
+// @Router /plugins/{id}/enable [patch]
 func EnablePluginHandler(c *gin.Context) {
 	id := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(id)

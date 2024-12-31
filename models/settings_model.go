@@ -1,6 +1,10 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type ApplicationSettings struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
@@ -17,14 +21,14 @@ type ApplicationSettings struct {
 	AnalyticsCode   string                 `bson:"analytics_code" json:"analytics_code"`   // Google Analytics kodu
 	LogoURL         string                 `bson:"logo_url" json:"logo_url"`               // Logo URL'si
 	FaviconURL      string                 `bson:"favicon_url" json:"favicon_url"`         // Favicon URL'si
-	UpdatedAt       primitive.DateTime     `bson:"updated_at" json:"updated_at"`
+	UpdatedAt       time.Time              `bson:"updated_at" json:"updated_at"`
 	UpdatedBy       string                 `bson:"updated_by" json:"updated_by"`
 }
 
 type SocialMedia struct {
-	Name   string `bson:"name" json:"name"`     // Örnek: Facebook, Twitter
-	URL    string `bson:"url" json:"url"`       // Örnek: https://facebook.com/yourpage
-	Active bool   `bson:"active" json:"active"` // Aktif mi?
+	Name   string `bson:"name" json:"name"  example:"Facebook"`              // Örnek: Facebook, Twitter
+	URL    string `bson:"url" json:"url example:"https://www.facebook.com""` // Örnek: https://facebook.com/yourpage
+	Active bool   `bson:"active" json:"active" example:true`                 // Aktif mi?
 }
 
 type MaintenanceToggleMode struct {
