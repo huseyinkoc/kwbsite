@@ -9,16 +9,13 @@ import (
 
 func SettingsRoutes(router *gin.Engine) {
 	settings := router.Group("/settings")
-	settings.Use(middlewares.MaintenanceMiddleware()) // Bakım modu kontrolü
-	settings.Use(middlewares.AuthMiddleware())        // Yetkilendirme
 	{
-		settings.GET("/", controllers.GetSettingsHandler)
-		settings.PUT("/", controllers.UpdateSettingsHandler)
+		settings.GET("/", middlewares.MaintenanceMiddleware(), controllers.GetSettingsHandler)
+		settings.PUT("/", middlewares.AuthMiddleware(), controllers.UpdateSettingsHandler)
 	}
 	links := router.Group("/settings/social-media")
-	links.Use(middlewares.AuthMiddleware()) // Yetkilendirme
 	{
-		links.GET("/", controllers.GetSocialMediaLinksHandler)
-		links.PUT("/", controllers.UpdateSocialMediaLinksHandler)
+		links.GET("/", middlewares.MaintenanceMiddleware(), controllers.GetSocialMediaLinksHandler)
+		links.PUT("/", middlewares.MaintenanceMiddleware(), middlewares.AuthMiddleware(), controllers.UpdateSocialMediaLinksHandler)
 	}
 }

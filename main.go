@@ -100,6 +100,9 @@ func main() {
 	// Global hata middleware'ini ekleyin
 	r.Use(middlewares.ErrorLoggingMiddleware())
 
+	// CORS Middleware'i ekleyin
+	r.Use(middlewares.CORSMiddleware())
+
 	// Rotaları yükle
 	routes.AuthRoutes(r)
 	routes.UserRoutes(r)
