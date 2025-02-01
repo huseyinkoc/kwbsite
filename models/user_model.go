@@ -11,6 +11,7 @@ type User struct {
 	Surname           string             `bson:"surname" json:"surname" binding:"required"` // Kullanıcının soyadı
 	FullName          string             `bson:"full_name" json:"full_name"`                // Otomatik oluşturulan tam ad
 	Email             string             `bson:"email" json:"email" binding:"required,email"`
+	PhoneNumber       string             `bson:"phone_number" json:"phone_number" binding:"omitempty,e164"`
 	PreferredLanguage string             `bson:"preferred_language" json:"preferred_language"` // Kullanıcı tercihi
 	Username          string             `bson:"username" json:"username" binding:"required"`
 	Password          string             `bson:"password" json:"password" binding:"required"`
@@ -33,6 +34,11 @@ type LoginByUsername struct {
 type LoginByEmail struct {
 	Email    string `json:"email" example:"mustafakemal@ataturk.tr"`
 	Password string `json:"password" example:"ADsdsasWDD!!!8"`
+}
+
+type LoginByPhone struct {
+	PhoneNumber string `json:"phone_number" example:"+905551112233"`
+	Password    string `json:"password" example:"ADsdsasWDD!!!8"`
 }
 
 // PreferredLanguageRequest represents a request to update the preferred language

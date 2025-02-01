@@ -11,8 +11,8 @@ import (
 func AuthRoutes(router *gin.Engine) {
 	auth := router.Group("/svc/auth")
 	{
-		auth.POST("/login-by-username", controllers.LoginByUsernameHandler)
-		auth.POST("/login-by-email", controllers.LoginByEmailHandler)
+		auth.POST("/login-by-username", middlewares.RateLimitMiddleware(), controllers.LoginByUsernameHandler)
+		auth.POST("/login-by-email", middlewares.RateLimitMiddleware(), controllers.LoginByEmailHandler)
 		auth.GET("/verify", controllers.VerifyEmailHandler)
 		auth.POST("/send-verification/:userID", controllers.SendVerificationEmailHandler)
 		auth.POST("/request-password-reset", controllers.RequestPasswordResetHandler)

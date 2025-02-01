@@ -3,8 +3,11 @@ package middlewares
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/didip/tollbooth/v7"
+	"github.com/didip/tollbooth_gin"
 	"github.com/gin-gonic/gin"
 )
 
@@ -56,4 +59,14 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func RateLimitMiddleware() gin.HandlerFunc {
+	// Yeni Tollbooth v7 sürümüne göre limiter tanımlama
+	limiter := tollbooth.NewLimiter(3, nil) // 3 istek limiti
+
+	// 5 dakika içinde en fazla 3 istek hakkı
+	limiter.SetTokenBucketExpirationTTL(time.Minute * 5)
+
+	return tollbooth_gin.LimitHandler(limiter)
 }

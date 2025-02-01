@@ -111,6 +111,21 @@ func GetUserByEmail(email string) (models.User, error) {
 	return user, nil
 }
 
+func GetUserByPhone(phone string) (models.User, error) {
+	var user models.User
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := userCollection.FindOne(ctx, bson.M{"phone_number": phone}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return user, errors.New("user not found")
+		}
+		return user, err
+	}
+	return user, nil
+}
+
 // VerifyUserAccount sets the is_verified field to true for a specific user
 func VerifyUserAccount(ctx context.Context, userID primitive.ObjectID) error {
 	filter := bson.M{"_id": userID}

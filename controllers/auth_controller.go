@@ -200,6 +200,68 @@ func LoginByEmailHandler(c *gin.Context) {
 	})
 }
 
+// LoginHandler authenticates a user
+// @Summary User login
+// @Description Authenticates a user and returns a JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param login body models.LoginByPhone true "User login credentials"
+// @Success 200 {object} map[string]interface{} "JWT token and user details"
+// @Failure 400 {object} map[string]interface{} "Invalid credentials"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /svc/auth/login-by-phone [post]
+func LoginByPhoneHandler(c *gin.Context) {
+	var input struct {
+		PhoneNumber string `json:"phone_number" binding:"required"`
+		Password    string `json:"password" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
+		return
+	}
+
+	// Kullanıcıyı telefon numarasıyla al
+	user, err := services.GetUserByPhone(input.PhoneNumber)
+	if err != nil {
+		log.Printf("Login failed: User %s not found", input.PhoneNumber)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	// Şifre doğrulama
+	if err := services.CheckPassword(user.Password, input.Password); err != nil {
+		log.Printf("Login failed: Incorrect password for user %s", input.PhoneNumber)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	// JWT Token oluştur
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &Claims{
+		UserID:   user.ID.Hex(),
+		Username: user.Username,
+		Email:    user.Email,
+		Roles:    user.Roles,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		log.Println("Login failed: Unable to generate JWT token")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"token":   tokenString,
+		"message": "Login successful",
+	})
+}
+
 // SendVerificationEmailHandler sends a verification email to the user
 // @Summary Send verification email
 // @Description Sends a verification email to a specific user
