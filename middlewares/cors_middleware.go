@@ -1,22 +1,30 @@
 package middlewares
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 )
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173") // React URL'si
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true") // Kimlik bilgilerini dahil et
+		// Tarayıcıdan gelen Origin başlığını al
+		origin := c.Request.Header.Get("Origin")
+		log.Println(origin)
+		// Eğer istek localhost:5173'ten geliyorsa izin ver
+		if origin == "http://localhost:5173" {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)                             // Gelen origin'e izin ver
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS") // İzin verilen HTTP metotları
+			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")     // İzin verilen başlıklar
+			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")                        // Kimlik bilgilerine izin ver
+		}
 
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(200) // OPTIONS isteğini hemen sonlandır
+			c.AbortWithStatus(200)
 			return
 		}
 
-		c.Next() // Devam et
+		c.Next()
 	}
 }
 

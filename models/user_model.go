@@ -25,8 +25,13 @@ type RequestPasswordReset struct {
 	Email string `json:"email" example:"abc@mail.com"`
 }
 
-type Login struct {
+type LoginByUsername struct {
 	Username string `json:"username" example:"mustafakemal"`
+	Password string `json:"password" example:"ADsdsasWDD!!!8"`
+}
+
+type LoginByEmail struct {
+	Email    string `json:"email" example:"mustafakemal@ataturk.tr"`
 	Password string `json:"password" example:"ADsdsasWDD!!!8"`
 }
 

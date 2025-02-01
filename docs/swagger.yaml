@@ -150,7 +150,16 @@ definitions:
       title:
         type: string
     type: object
-  models.Login:
+  models.LoginByEmail:
+    properties:
+      email:
+        example: mustafakemal@ataturk.tr
+        type: string
+      password:
+        example: ADsdsasWDD!!!8
+        type: string
+    type: object
+  models.LoginByUsername:
     properties:
       password:
         example: ADsdsasWDD!!!8
@@ -418,166 +427,6 @@ paths:
       summary: Get all activity logs
       tags:
       - Activity Logs
-  /auth/login:
-    post:
-      consumes:
-      - application/json
-      description: Authenticates a user and returns a JWT token
-      parameters:
-      - description: User login credentials
-        in: body
-        name: login
-        required: true
-        schema:
-          $ref: '#/definitions/models.Login'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: JWT token and user details
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid credentials
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: User login
-      tags:
-      - Authentication
-  /auth/request-password-reset:
-    post:
-      consumes:
-      - application/json
-      description: Sends a password reset email to the user
-      parameters:
-      - description: User email
-        in: body
-        name: email
-        required: true
-        schema:
-          $ref: '#/definitions/models.RequestPasswordReset'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Password reset email sent
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid request payload
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Email not found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Failed to send password reset email
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Request password reset
-      tags:
-      - Authentication
-  /auth/reset-password:
-    post:
-      consumes:
-      - application/json
-      description: Resets a user's password using a valid reset token
-      parameters:
-      - description: Password reset token
-        in: query
-        name: token
-        required: true
-        type: string
-      - description: New password
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.ResetPasswordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Password updated successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid request payload or token
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Failed to update password
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Reset password
-      tags:
-      - Authentication
-  /auth/send-verification/{userID}:
-    post:
-      description: Sends a verification email to a specific user
-      parameters:
-      - description: User ID
-        in: path
-        name: userID
-        required: true
-        type: string
-      responses:
-        "200":
-          description: Verification email sent
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid user ID
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Failed to send verification email
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Send verification email
-      tags:
-      - Authentication
-  /auth/verify-email:
-    get:
-      description: Verifies a user's email using a token
-      parameters:
-      - description: Verification token
-        in: query
-        name: token
-        required: true
-        type: string
-      responses:
-        "200":
-          description: Email verified successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid or expired token
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Verify email
-      tags:
-      - Authentication
   /categories:
     get:
       description: Retrieve all categories with their details
@@ -2396,111 +2245,6 @@ paths:
       summary: Update a role
       tags:
       - Roles
-  /settings:
-    get:
-      description: Retrieve all application settings including general settings and
-        configurations
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Application settings
-          schema:
-            $ref: '#/definitions/models.ApplicationSettings'
-        "500":
-          description: Failed to retrieve settings
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get application settings
-      tags:
-      - Settings
-    put:
-      consumes:
-      - application/json
-      description: Update application settings with new values
-      parameters:
-      - description: Updated settings data
-        in: body
-        name: update
-        required: true
-        schema:
-          additionalProperties: true
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Settings updated successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid request payload
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Failed to update settings
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Update application settings
-      tags:
-      - Settings
-  /settings/social-media:
-    get:
-      description: Retrieve all social media links configured for the application
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of social media links
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Failed to retrieve social media links
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get social media links
-      tags:
-      - Social Media
-    put:
-      consumes:
-      - application/json
-      description: Update the social media links for the application
-      parameters:
-      - description: Updated social media links
-        in: body
-        name: links
-        required: true
-        schema:
-          additionalProperties:
-            $ref: '#/definitions/models.SocialMedia'
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Social media links updated successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid request payload
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Failed to update social media links
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Update social media links
-      tags:
-      - Social Media
   /sliders:
     get:
       description: Retrieve all sliders with their details
@@ -2616,6 +2360,304 @@ paths:
       summary: Update a slider
       tags:
       - Sliders
+  /svc/auth/login-by-email:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns a JWT token
+      parameters:
+      - description: User login credentials
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginByEmail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token and user details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid credentials
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: User login
+      tags:
+      - Authentication
+  /svc/auth/login-by-username:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns a JWT token
+      parameters:
+      - description: User login credentials
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginByUsername'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token and user details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid credentials
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: User login
+      tags:
+      - Authentication
+  /svc/auth/request-password-reset:
+    post:
+      consumes:
+      - application/json
+      description: Sends a password reset email to the user
+      parameters:
+      - description: User email
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/models.RequestPasswordReset'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset email sent
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request payload
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Email not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to send password reset email
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Request password reset
+      tags:
+      - Authentication
+  /svc/auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Resets a user's password using a valid reset token
+      parameters:
+      - description: Password reset token
+        in: query
+        name: token
+        required: true
+        type: string
+      - description: New password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request payload or token
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update password
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Reset password
+      tags:
+      - Authentication
+  /svc/auth/send-verification/{userID}:
+    post:
+      description: Sends a verification email to a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Verification email sent
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to send verification email
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Send verification email
+      tags:
+      - Authentication
+  /svc/auth/verify-email:
+    get:
+      description: Verifies a user's email using a token
+      parameters:
+      - description: Verification token
+        in: query
+        name: token
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Email verified successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid or expired token
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Verify email
+      tags:
+      - Authentication
+  /svc/settings:
+    get:
+      description: Retrieve all application settings including general settings and
+        configurations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Application settings
+          schema:
+            $ref: '#/definitions/models.ApplicationSettings'
+        "500":
+          description: Failed to retrieve settings
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get application settings
+      tags:
+      - Settings
+    put:
+      consumes:
+      - application/json
+      description: Update application settings with new values
+      parameters:
+      - description: Updated settings data
+        in: body
+        name: update
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Settings updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request payload
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update settings
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update application settings
+      tags:
+      - Settings
+  /svc/settings/social-media:
+    get:
+      description: Retrieve all social media links configured for the application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of social media links
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to retrieve social media links
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get social media links
+      tags:
+      - Social Media
+    put:
+      consumes:
+      - application/json
+      description: Update the social media links for the application
+      parameters:
+      - description: Updated social media links
+        in: body
+        name: links
+        required: true
+        schema:
+          additionalProperties:
+            $ref: '#/definitions/models.SocialMedia'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Social media links updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request payload
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update social media links
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update social media links
+      tags:
+      - Social Media
   /tags:
     get:
       description: Retrieve all tags with their details

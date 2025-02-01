@@ -19,6 +19,7 @@ var jwtSecret = []byte("your_secret_key") // JWT için gizli anahtar
 type Claims struct {
 	UserID            string   `json:"userID"`             // Kullanıcı ID'si
 	Username          string   `json:"username"`           // Kullanıcı adı
+	Email             string   `json:"email"`              // E-posta adresi
 	PreferredLanguage string   `json:"preferred_language"` // Dil tercihi
 	Roles             []string `json:"roles"`
 	jwt.StandardClaims
@@ -30,12 +31,12 @@ type Claims struct {
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param login body models.Login true "User login credentials"
+// @Param login body models.LoginByUsername true "User login credentials"
 // @Success 200 {object} map[string]interface{} "JWT token and user details"
 // @Failure 400 {object} map[string]interface{} "Invalid credentials"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Router /auth/login [post]
-func LoginHandler(c *gin.Context) {
+// @Router /svc/auth/login-by-username [post]
+func LoginByUsernameHandler(c *gin.Context) {
 	var input struct {
 		Username string `json:"username" binding:"required"`
 		Password string `json:"password" binding:"required"`
@@ -111,6 +112,94 @@ func LoginHandler(c *gin.Context) {
 	})
 }
 
+// LoginHandler authenticates a user
+// @Summary User login
+// @Description Authenticates a user and returns a JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param login body models.LoginByEmail true "User login credentials"
+// @Success 200 {object} map[string]interface{} "JWT token and user details"
+// @Failure 400 {object} map[string]interface{} "Invalid credentials"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /svc/auth/login-by-email [post]
+func LoginByEmailHandler(c *gin.Context) {
+	var input struct {
+		Email    string `json:"email" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
+		return
+	}
+
+	// Kullanıcıyı veritabanından al
+	user, err := services.GetUserByEmail(input.Email)
+	if err != nil {
+		log.Printf("Login failed: User %s not found", input.Email)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	// Şifre doğrulaması
+	if err := services.CheckPassword(user.Password, input.Password); err != nil {
+		log.Printf("Login failed: Incorrect password for user %s", input.Email)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	preferredLanguage := user.PreferredLanguage
+	if preferredLanguage == "" {
+		preferredLanguage = "en" // Varsayılan dil
+	}
+
+	// JWT token oluştur
+	expirationTime := time.Now().Add(24 * time.Hour) // 1 gün geçerli
+	claims := &Claims{
+		UserID:            user.ID.Hex(),
+		Username:          user.Username,
+		Email:             user.Email,
+		Roles:             user.Roles,
+		PreferredLanguage: preferredLanguage, // Dil tercihini ekledik
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		log.Println("Login failed: Unable to generate JWT token")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	// CSRF token oluştur
+	csrfToken, err := middlewares.GenerateCSRFToken()
+	if err != nil {
+		log.Println("Login failed: Unable to generate CSRF token")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate CSRF token"})
+		return
+	}
+
+	// CSRF token'i oturum bazlı saklama
+	middlewares.StoreCSRFToken(input.Email, csrfToken)
+
+	// Yanıtı döndür
+	log.Printf("Login successful: User %s logged in", input.Email)
+
+	c.JSON(http.StatusOK, gin.H{
+		"token":      tokenString,
+		"csrf_token": csrfToken,
+		"message":    "Login successful",
+		"user": gin.H{
+			"name":      user.Name,
+			"surname":   user.Surname,
+			"full_name": fmt.Sprintf("%s %s", user.Name, user.Surname),
+		},
+	})
+}
+
 // SendVerificationEmailHandler sends a verification email to the user
 // @Summary Send verification email
 // @Description Sends a verification email to a specific user
@@ -119,7 +208,7 @@ func LoginHandler(c *gin.Context) {
 // @Success 200 {object} map[string]interface{} "Verification email sent"
 // @Failure 400 {object} map[string]interface{} "Invalid user ID"
 // @Failure 500 {object} map[string]interface{} "Failed to send verification email"
-// @Router /auth/send-verification/{userID} [post]
+// @Router /svc/auth/send-verification/{userID} [post]
 func SendVerificationEmailHandler(c *gin.Context) {
 	userID := c.Param("userID")
 	objectID, err := primitive.ObjectIDFromHex(userID)
@@ -150,7 +239,7 @@ func SendVerificationEmailHandler(c *gin.Context) {
 // @Param token query string true "Verification token"
 // @Success 200 {object} map[string]interface{} "Email verified successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid or expired token"
-// @Router /auth/verify-email [get]
+// @Router /svc/auth/verify-email [get]
 func VerifyEmailHandler(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
@@ -178,7 +267,7 @@ func VerifyEmailHandler(c *gin.Context) {
 // @Failure 400 {object} map[string]interface{} "Invalid request payload"
 // @Failure 404 {object} map[string]interface{} "Email not found"
 // @Failure 500 {object} map[string]interface{} "Failed to send password reset email"
-// @Router /auth/request-password-reset [post]
+// @Router /svc/auth/request-password-reset [post]
 func RequestPasswordResetHandler(c *gin.Context) {
 	var request struct {
 		Email string `json:"email"`
@@ -226,7 +315,7 @@ func RequestPasswordResetHandler(c *gin.Context) {
 // @Success 200 {object} map[string]interface{} "Password updated successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid request payload or token"
 // @Failure 500 {object} map[string]interface{} "Failed to update password"
-// @Router /auth/reset-password [post]
+// @Router /svc/auth/reset-password [post]
 func ResetPasswordHandler(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
