@@ -26,6 +26,22 @@ func init() {
 	}
 }
 
+// @title           Admin Panel API
+// @version         1.0
+// @description     This is the API documentation for the admin panel project.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.email  support@example.com
+
+// @license.name  MIT
+// @license.url   https://opensource.org/licenses/MIT
+
+// @BasePath  /
+
+// @security BearerAuth
+// @in header
+// @name Authorization
 func main() {
 
 	go func() {
@@ -76,7 +92,7 @@ func main() {
 	r := gin.Default()
 
 	// Swagger route
-	r.GET("/api-docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Dil ve SEO dostu rotalar
 	r.GET("/:lang/:slug", func(c *gin.Context) {
@@ -130,5 +146,5 @@ func main() {
 	r.Static("/docs", "./docs")
 
 	// Sunucuyu başlat
-	r.Run(":8080")
+	r.Run(":9090")
 }

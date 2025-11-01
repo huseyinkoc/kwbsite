@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var jwtSecret = []byte("your_secret_key") // JWT için gizli anahtar
+var jwtSecret = []byte("your_secret_key") // JWT token için gizli anahtar
 
 // JWT Claims yapısı
 type Claims struct {
@@ -71,6 +71,7 @@ func LoginByUsernameHandler(c *gin.Context) {
 	claims := &Claims{
 		UserID:            user.ID.Hex(),
 		Username:          user.Username,
+		Email:             user.Email,
 		Roles:             user.Roles,
 		PreferredLanguage: preferredLanguage, // Dil tercihini ekledik
 		StandardClaims: jwt.StandardClaims{

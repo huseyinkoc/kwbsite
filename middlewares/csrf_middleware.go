@@ -22,13 +22,20 @@ func GenerateCSRFToken() (string, error) {
 	return base64.StdEncoding.EncodeToString(b), nil
 }
 
-// CSRF token doğrulama
+// CSRF token doğrulama ve geçerliyse yenisini oluşturma
 func ValidateCSRFToken(username, csrfToken string) bool {
 	value, ok := csrfTokens.Load(username)
-	if !ok {
+	if !ok || value != csrfToken {
 		return false
 	}
-	return value == csrfToken
+
+	// Doğrulama başarılıysa yeni bir token oluştur ve sakla
+	newToken, err := GenerateCSRFToken()
+	if err == nil {
+		csrfTokens.Store(username, newToken)
+	}
+
+	return true
 }
 
 // CSRF token saklama
@@ -47,7 +54,14 @@ func CSRFMiddleware() gin.HandlerFunc {
 				c.Abort()
 				return
 			}
+
+			// Doğrulama başarılıysa yeni token zaten oluşturulmuş olur.
+			// Şimdi yeni token'ı header'a ekleyelim:
+			if newToken, ok := csrfTokens.Load(username); ok {
+				c.Writer.Header().Set("X-CSRF-Token", newToken.(string))
+			}
 		}
+
 		c.Next()
 	}
 }

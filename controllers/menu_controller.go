@@ -10,17 +10,19 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-// CreateMenuHandler creates a new menu
 // @Summary Create a new menu
 // @Description Add a new menu with its details
 // @Tags Menus
 // @Accept json
 // @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer Token"
 // @Param menu body models.Menu true "Menu details"
 // @Success 201 {object} models.Menu "Menu created successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid request payload"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 500 {object} map[string]interface{} "Failed to create menu"
-// @Router /menus [post]
+// @Router /svc/menus [post]
 func CreateMenuHandler(c *gin.Context) {
 	var menu models.Menu
 
@@ -50,15 +52,17 @@ func CreateMenuHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Menu created successfully", "menu": createdMenu})
 }
 
-// GetAllMenusHandler retrieves all menus
 // @Summary Get all menus
 // @Description Retrieve all menus, including frontend and backend menus
 // @Tags Menus
 // @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer Token"
 // @Param type query string false "Menu type (frontend or backend)"
 // @Success 200 {array} models.Menu "List of menus"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 500 {object} map[string]interface{} "Failed to retrieve menus"
-// @Router /menus [get]
+// @Router /svc/menus [get]
 func GetMenusHandler(c *gin.Context) {
 	menuType := c.Query("type") // frontend or backend
 	if menuType == "" {
@@ -83,19 +87,21 @@ func GetMenusHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"menus": menus})
 }
 
-// UpdateMenuHandler updates an existing menu
 // @Summary Update a menu
 // @Description Update menu details by its ID
 // @Tags Menus
 // @Accept json
 // @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer Token"
 // @Param id path string true "Menu ID"
 // @Param menu body models.Menu true "Updated menu details"
 // @Success 200 {object} models.Menu "Menu updated successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid request payload or menu ID"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 404 {object} map[string]interface{} "Menu not found"
 // @Failure 500 {object} map[string]interface{} "Failed to update menu"
-// @Router /menus/{id} [put]
+// @Router /svc/menus/{id} [put]
 func UpdateMenuHandler(c *gin.Context) {
 	id := c.Param("id")
 
@@ -122,16 +128,18 @@ func UpdateMenuHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Menu updated successfully", "menu": updatedMenu})
 }
 
-// DeleteMenuHandler deletes a menu by ID
 // @Summary Delete a menu
 // @Description Remove a menu by its unique identifier
 // @Tags Menus
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer Token"
 // @Param id path string true "Menu ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} map[string]interface{} "Invalid menu ID"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 404 {object} map[string]interface{} "Menu not found"
 // @Failure 500 {object} map[string]interface{} "Failed to delete menu"
-// @Router /menus/{id} [delete]
+// @Router /svc/menus/{id} [delete]
 func DeleteMenuHandler(c *gin.Context) {
 	id := c.Param("id")
 

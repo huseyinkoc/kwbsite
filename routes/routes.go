@@ -13,6 +13,7 @@ func AuthRoutes(router *gin.Engine) {
 	{
 		auth.POST("/login-by-username", middlewares.RateLimitMiddleware(), controllers.LoginByUsernameHandler)
 		auth.POST("/login-by-email", middlewares.RateLimitMiddleware(), controllers.LoginByEmailHandler)
+		auth.POST("/login-by-phone", middlewares.RateLimitMiddleware(), controllers.LoginByPhoneHandler)
 		auth.GET("/verify", controllers.VerifyEmailHandler)
 		auth.POST("/send-verification/:userID", controllers.SendVerificationEmailHandler)
 		auth.POST("/request-password-reset", controllers.RequestPasswordResetHandler)

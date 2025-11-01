@@ -10,14 +10,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var jwtSecret = []byte("your_secret_key") // JWT token için gizli anahtar
-
+// Yeni JWT Claims yapısı
 type Claims struct {
-	UserID   string   `json:"userID"`   // Kullanıcı ID'si
-	Username string   `json:"username"` // Kullanıcı adı
-	Roles    []string `json:"roles"`
+	UserID            string   `json:"userID"`
+	Username          string   `json:"username"`
+	Email             string   `json:"email"`
+	PreferredLanguage string   `json:"preferred_language"`
+	Roles             []string `json:"roles"`
 	jwt.StandardClaims
 }
+
+var jwtSecret = []byte("your_secret_key") // JWT token için gizli anahtar
 
 // AuthMiddleware JWT doğrulama middleware'i
 func AuthMiddleware() gin.HandlerFunc {
@@ -52,9 +55,11 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Kullanıcı bilgilerini context'e ekle
-		c.Set("userID", claims.UserID)     // Kullanıcı ID'si
-		c.Set("username", claims.Username) // Kullanıcı adı
-		c.Set("roles", claims.Roles)       // Kullanıcı rolü
+		c.Set("userID", claims.UserID)
+		c.Set("username", claims.Username)
+		c.Set("email", claims.Email)
+		c.Set("preferred_language", claims.PreferredLanguage)
+		c.Set("roles", claims.Roles)
 
 		c.Next()
 	}
