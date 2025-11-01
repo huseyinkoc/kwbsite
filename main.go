@@ -10,6 +10,9 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -44,9 +47,13 @@ func init() {
 // @name Authorization
 func main() {
 
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
+	// dev/prod kontrolü (pprof yalnızca dev'de açılmalı)
+	if os.Getenv("ENV") == "development" {
+		go func() {
+			// pprof sadece development için. productionda kapatın.
+			log.Println(http.ListenAndServe("localhost:6060", nil))
+		}()
+	}
 
 	// Veritabanı bağlantısını başlat
 	if err := configs.Init(); err != nil {
@@ -85,11 +92,27 @@ func main() {
 	services.InitActivityLogService(configs.DB)
 	services.InitSettingsService(configs.DB)
 	services.InitSliderService(configs.DB)
+	services.InitAuthService(configs.DB)
 
 	log.Println("Tüm servisler başarıyla başlatıldı.")
 
 	// Gin başlat
-	r := gin.Default()
+	// Gin: daha kontrollü middleware yönetimi için gin.New kullan
+	r := gin.New()
+	// Global middleware'leri ROUTE tanımlarından ÖNCE ekleyin
+	r.Use(gin.Recovery())
+
+	// Logger middleware, tüm rotalar için etkin
+	r.Use(middlewares.LoggerMiddleware())
+
+	// Global hata middleware'ini ekleyin
+	r.Use(middlewares.ErrorLoggingMiddleware())
+
+	// CORS Middleware'i ekleyin
+	r.Use(middlewares.CORSMiddleware())
+
+	// Opsiyonel rate limiter
+	r.Use(middlewares.RateLimitMiddleware())
 
 	// Swagger route
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -109,15 +132,6 @@ func main() {
 			// "content":  content,
 		})
 	})
-
-	// Logger middleware, tüm rotalar için etkin
-	r.Use(middlewares.LoggerMiddleware())
-
-	// Global hata middleware'ini ekleyin
-	r.Use(middlewares.ErrorLoggingMiddleware())
-
-	// CORS Middleware'i ekleyin
-	r.Use(middlewares.CORSMiddleware())
 
 	// Rotaları yükle
 	routes.AuthRoutes(r)
@@ -146,5 +160,37 @@ func main() {
 	r.Static("/docs", "./docs")
 
 	// Sunucuyu başlat
-	r.Run(":9090")
+	// Port konfigürasyonu
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "9090"
+	}
+	srv := &http.Server{
+		Addr:         ":" + port,
+		Handler:      r,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+
+	// Run server in goroutine
+	go func() {
+		log.Printf("Server starting on %s\n", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	// Graceful shutdown on signal
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutdown initiated...")
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer shutdownCancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+	log.Println("Server exiting")
 }

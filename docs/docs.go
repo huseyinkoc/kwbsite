@@ -2773,7 +2773,7 @@ const docTemplate = `{
         },
         "/svc/auth/login-by-phone": {
             "post": {
-                "description": "Authenticates a user and returns a JWT token",
+                "description": "Authenticates user with phone number and password",
                 "consumes": [
                     "application/json"
                 ],
@@ -2783,10 +2783,10 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "User login",
+                "summary": "Login by phone",
                 "parameters": [
                     {
-                        "description": "User login credentials",
+                        "description": "Phone login credentials",
                         "name": "login",
                         "in": "body",
                         "required": true,
@@ -2804,14 +2804,28 @@ const docTemplate = `{
                         }
                     },
                     "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
                         "description": "Invalid credentials",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
+                    "403": {
+                        "description": "Account locked",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -2861,6 +2875,68 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/svc/auth/logout": {
+            "post": {
+                "description": "Revokes refresh token and clears cookie",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout user",
+                "responses": {
+                    "200": {
+                        "description": "Successfully logged out",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/svc/auth/refresh": {
+            "post": {
+                "description": "Rotates refresh token and returns new access token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Refresh access token",
+                "responses": {
+                    "200": {
+                        "description": "New access token and refresh cookie set",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing refresh token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true

@@ -4,15 +4,28 @@ import (
 	"admin-panel/models"
 	"context"
 	"errors"
+	"os"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var userCollection *mongo.Collection
+
+// BcryptCost okunur veya default 12
+var bcryptCost = func() int {
+	if v := os.Getenv("BCRYPT_COST"); v != "" {
+		if i, err := strconv.Atoi(v); err == nil && i >= 4 {
+			return i
+		}
+	}
+	return 12
+}()
 
 // InitUserService initializes the user collection
 func InitUserService(client *mongo.Client) {
@@ -28,12 +41,13 @@ func CreateUser(user models.User) (*mongo.InsertOneResult, error) {
 	return userCollection.InsertOne(ctx, user)
 }
 
-// GetAllUsers retrieves all users from the database
+// GetAllUsers retrieves all users from the database (excludes password)
 func GetAllUsers() ([]models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cursor, err := userCollection.Find(ctx, bson.M{})
+	opts := options.Find().SetProjection(bson.M{"password": 0})
+	cursor, err := userCollection.Find(ctx, bson.M{}, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -64,9 +78,9 @@ func DeleteUser(id primitive.ObjectID) (*mongo.DeleteResult, error) {
 	return userCollection.DeleteOne(ctx, filter)
 }
 
-// HashPassword hashes a plain text password
+// HashPassword hashes a plain text password with configurable cost
 func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
 	return string(bytes), err
 }
 
@@ -75,17 +89,34 @@ func CheckPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
+// GetUserByID returns user without password projection
+func GetUserByID(id primitive.ObjectID) (models.User, error) {
+	var user models.User
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	opts := options.FindOne().SetProjection(bson.M{"password": 0})
+	err := userCollection.FindOne(ctx, bson.M{"_id": id}, opts).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return user, mongo.ErrNoDocuments
+		}
+		return user, err
+	}
+	return user, nil
+}
+
 func GetUserByUsername(username string) (models.User, error) {
 	var user models.User
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// MongoDB sorgusu
-	err := userCollection.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	opts := options.FindOne().SetProjection(bson.M{"password": 0})
+	err := userCollection.FindOne(ctx, bson.M{"username": username}, opts).Decode(&user)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return user, errors.New("user not found")
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return user, mongo.ErrNoDocuments
 		}
 		return user, err
 	}
@@ -99,11 +130,65 @@ func GetUserByEmail(email string) (models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// MongoDB sorgusu
+	// Parola hariç dönen versiyon (diğer api'lar için güvenli)
+	opts := options.FindOne().SetProjection(bson.M{"password": 0})
+	err := userCollection.FindOne(ctx, bson.M{"email": email}, opts).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return user, mongo.ErrNoDocuments
+		}
+		return user, err
+	}
+
+	return user, nil
+}
+
+// Yeni: login/auth için parola dahil dönen fonksiyonlar
+func GetUserByEmailWithPassword(email string) (models.User, error) {
+	var user models.User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Parola dahil döndür (sadece auth akışlarında kullanılmalı)
 	err := userCollection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return user, errors.New("user not found")
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return user, mongo.ErrNoDocuments
+		}
+		return user, err
+	}
+
+	return user, nil
+}
+
+func GetUserByUsernameWithPassword(username string) (models.User, error) {
+	var user models.User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := userCollection.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return user, mongo.ErrNoDocuments
+		}
+		return user, err
+	}
+
+	return user, nil
+}
+
+func GetUserByPhoneWithPassword(phone string) (models.User, error) {
+	var user models.User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := userCollection.FindOne(ctx, bson.M{"phone_number": phone}).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return user, mongo.ErrNoDocuments
 		}
 		return user, err
 	}
@@ -116,10 +201,11 @@ func GetUserByPhone(phone string) (models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err := userCollection.FindOne(ctx, bson.M{"phone_number": phone}).Decode(&user)
+	opts := options.FindOne().SetProjection(bson.M{"password": 0})
+	err := userCollection.FindOne(ctx, bson.M{"phone_number": phone}, opts).Decode(&user)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return user, errors.New("user not found")
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return user, mongo.ErrNoDocuments
 		}
 		return user, err
 	}
@@ -152,7 +238,7 @@ func GetUserEmailByID(ctx context.Context, userID primitive.ObjectID) (string, e
 	// Kullanıcıyı veritabanında bul
 	err := userCollection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
 	if err != nil {
-		if err.Error() == "mongo: no documents in result" {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return "", errors.New("user not found")
 		}
 		return "", err
@@ -164,7 +250,7 @@ func GetUserEmailByID(ctx context.Context, userID primitive.ObjectID) (string, e
 // UpdateUserPassword updates the password of a user by their ID
 func UpdateUserPassword(ctx context.Context, userID primitive.ObjectID, newPassword string) error {
 	// Şifreyi hashle
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcryptCost)
 	if err != nil {
 		return errors.New("failed to hash password")
 	}

@@ -1,28 +1,25 @@
 package controllers
 
 import (
-	"admin-panel/middlewares"
 	"admin-panel/services"
-	"fmt"
-	"log"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var jwtSecret = []byte("your_secret_key") // JWT token için gizli anahtar
-
-// JWT Claims yapısı
+// JWT Claims yapısı (RegisteredClaims kullanılıyor)
 type Claims struct {
-	UserID            string   `json:"userID"`             // Kullanıcı ID'si
-	Username          string   `json:"username"`           // Kullanıcı adı
-	Email             string   `json:"email"`              // E-posta adresi
-	PreferredLanguage string   `json:"preferred_language"` // Dil tercihi
+	UserID            string   `json:"userID"`
+	Username          string   `json:"username"`
+	Email             string   `json:"email"`
+	PreferredLanguage string   `json:"preferred_language"`
 	Roles             []string `json:"roles"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 // LoginHandler authenticates a user
@@ -46,70 +43,64 @@ func LoginByUsernameHandler(c *gin.Context) {
 		return
 	}
 
-	// Kullanıcıyı veritabanından al
+	// check lock (username based)
 	user, err := services.GetUserByUsername(input.Username)
+	if err == nil {
+		locked, until, _ := services.IsAccountLockedByEmail(user.Email)
+		if locked {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Account locked", "locked_until": until})
+			return
+		}
+	}
+
+	user, err = services.GetUserByUsernameWithPassword(input.Username)
 	if err != nil {
-		log.Printf("Login failed: User %s not found", input.Username)
+		// do not reveal existence
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	// Şifre doğrulaması
 	if err := services.CheckPassword(user.Password, input.Password); err != nil {
-		log.Printf("Login failed: Incorrect password for user %s", input.Username)
+		_, _ = services.IncrementFailedLoginByEmail(user.Email)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	preferredLanguage := user.PreferredLanguage
-	if preferredLanguage == "" {
-		preferredLanguage = "en" // Varsayılan dil
-	}
+	// success -> reset failed attempts
+	_ = services.ResetFailedAttempts(user.ID)
 
-	// JWT token oluştur
-	expirationTime := time.Now().Add(24 * time.Hour) // 1 gün geçerli
-	claims := &Claims{
-		UserID:            user.ID.Hex(),
-		Username:          user.Username,
-		Email:             user.Email,
-		Roles:             user.Roles,
-		PreferredLanguage: preferredLanguage, // Dil tercihini ekledik
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtSecret)
+	// access token
+	tokenString, _, err := services.GenerateAccessToken(user)
 	if err != nil {
-		log.Println("Login failed: Unable to generate JWT token")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	// CSRF token oluştur
-	csrfToken, err := middlewares.GenerateCSRFToken()
-	if err != nil {
-		log.Println("Login failed: Unable to generate CSRF token")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate CSRF token"})
-		return
+	// If client already has a refresh cookie and it's valid for this user, reuse it.
+	if cookie, err := c.Request.Cookie("refresh_token"); err == nil {
+		if uid, ok, _ := services.IsRefreshTokenValid(cookie.Value); ok && uid == user.ID {
+			// reuse existing cookie — do not generate/rotate
+			c.JSON(http.StatusOK, gin.H{
+				"token":      tokenString,
+				"expires_in": 15 * 60,
+				"message":    "Login successful",
+			})
+			return
+		}
 	}
 
-	// CSRF token'i oturum bazlı saklama
-	middlewares.StoreCSRFToken(input.Username, csrfToken)
-
-	// Yanıtı döndür
-	log.Printf("Login successful: User %s logged in", input.Username)
+	// otherwise create and set a new refresh token
+	refreshPlain, rtExpiry, err := services.GenerateAndStoreRefreshToken(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+		return
+	}
+	setRefreshCookie(c.Writer, refreshPlain, rtExpiry)
 
 	c.JSON(http.StatusOK, gin.H{
 		"token":      tokenString,
-		"csrf_token": csrfToken,
+		"expires_in": 15 * 60,
 		"message":    "Login successful",
-		"user": gin.H{
-			"name":      user.Name,
-			"surname":   user.Surname,
-			"full_name": fmt.Sprintf("%s %s", user.Name, user.Surname),
-		},
 	})
 }
 
@@ -126,7 +117,7 @@ func LoginByUsernameHandler(c *gin.Context) {
 // @Router /svc/auth/login-by-email [post]
 func LoginByEmailHandler(c *gin.Context) {
 	var input struct {
-		Email    string `json:"email" binding:"required"`
+		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -134,83 +125,76 @@ func LoginByEmailHandler(c *gin.Context) {
 		return
 	}
 
-	// Kullanıcıyı veritabanından al
-	user, err := services.GetUserByEmail(input.Email)
+	// check lock
+	locked, until, _ := services.IsAccountLockedByEmail(input.Email)
+	if locked {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Account locked", "locked_until": until})
+		return
+	}
+
+	user, err := services.GetUserByEmailWithPassword(input.Email)
 	if err != nil {
-		log.Printf("Login failed: User %s not found", input.Email)
+		// do not reveal existence
+		_, _ = services.IncrementFailedLoginByEmail(input.Email)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	// Şifre doğrulaması
 	if err := services.CheckPassword(user.Password, input.Password); err != nil {
-		log.Printf("Login failed: Incorrect password for user %s", input.Email)
+		_, _ = services.IncrementFailedLoginByEmail(input.Email)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	preferredLanguage := user.PreferredLanguage
-	if preferredLanguage == "" {
-		preferredLanguage = "en" // Varsayılan dil
-	}
+	// success -> reset failed attempts
+	_ = services.ResetFailedAttempts(user.ID)
 
-	// JWT token oluştur
-	expirationTime := time.Now().Add(24 * time.Hour) // 1 gün geçerli
-	claims := &Claims{
-		UserID:            user.ID.Hex(),
-		Username:          user.Username,
-		Email:             user.Email,
-		Roles:             user.Roles,
-		PreferredLanguage: preferredLanguage, // Dil tercihini ekledik
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtSecret)
+	// access token
+	tokenString, _, err := services.GenerateAccessToken(user)
 	if err != nil {
-		log.Println("Login failed: Unable to generate JWT token")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	// CSRF token oluştur
-	csrfToken, err := middlewares.GenerateCSRFToken()
-	if err != nil {
-		log.Println("Login failed: Unable to generate CSRF token")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate CSRF token"})
-		return
+	// reuse existing cookie if valid
+	if cookie, err := c.Request.Cookie("refresh_token"); err == nil {
+		if uid, ok, _ := services.IsRefreshTokenValid(cookie.Value); ok && uid == user.ID {
+			c.JSON(http.StatusOK, gin.H{
+				"token":      tokenString,
+				"expires_in": 15 * 60,
+				"message":    "Login successful",
+			})
+			return
+		}
 	}
 
-	// CSRF token'i oturum bazlı saklama
-	middlewares.StoreCSRFToken(input.Email, csrfToken)
-
-	// Yanıtı döndür
-	log.Printf("Login successful: User %s logged in", input.Email)
+	// create new refresh token
+	refreshPlain, rtExpiry, err := services.GenerateAndStoreRefreshToken(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+		return
+	}
+	setRefreshCookie(c.Writer, refreshPlain, rtExpiry)
 
 	c.JSON(http.StatusOK, gin.H{
 		"token":      tokenString,
-		"csrf_token": csrfToken,
+		"expires_in": 15 * 60,
 		"message":    "Login successful",
-		"user": gin.H{
-			"name":      user.Name,
-			"surname":   user.Surname,
-			"full_name": fmt.Sprintf("%s %s", user.Name, user.Surname),
-		},
 	})
 }
 
-// LoginHandler authenticates a user
-// @Summary User login
-// @Description Authenticates a user and returns a JWT token
+// LoginByPhoneHandler için Swagger tanımı
+// @Summary Login by phone
+// @Description Authenticates user with phone number and password
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param login body models.LoginByPhone true "User login credentials"
+// @Param login body models.LoginByPhone true "Phone login credentials"
 // @Success 200 {object} map[string]interface{} "JWT token and user details"
-// @Failure 400 {object} map[string]interface{} "Invalid credentials"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 401 {object} map[string]interface{} "Invalid credentials"
+// @Failure 403 {object} map[string]interface{} "Account locked"
+// @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /svc/auth/login-by-phone [post]
 func LoginByPhoneHandler(c *gin.Context) {
 	var input struct {
@@ -222,45 +206,128 @@ func LoginByPhoneHandler(c *gin.Context) {
 		return
 	}
 
-	// Kullanıcıyı telefon numarasıyla al
+	// Get user first to check lock status by email
 	user, err := services.GetUserByPhone(input.PhoneNumber)
+	if err == nil {
+		locked, until, _ := services.IsAccountLockedByEmail(user.Email)
+		if locked {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Account locked", "locked_until": until})
+			return
+		}
+	}
+
+	user, err = services.GetUserByPhoneWithPassword(input.PhoneNumber)
 	if err != nil {
-		log.Printf("Login failed: User %s not found", input.PhoneNumber)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	// Şifre doğrulama
 	if err := services.CheckPassword(user.Password, input.Password); err != nil {
-		log.Printf("Login failed: Incorrect password for user %s", input.PhoneNumber)
+		_, _ = services.IncrementFailedLoginByEmail(user.Email)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	// JWT Token oluştur
-	expirationTime := time.Now().Add(24 * time.Hour)
-	claims := &Claims{
-		UserID:   user.ID.Hex(),
-		Username: user.Username,
-		Email:    user.Email,
-		Roles:    user.Roles,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
+	// success -> reset failed attempts
+	_ = services.ResetFailedAttempts(user.ID)
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtSecret)
+	// access token
+	tokenString, _, err := services.GenerateAccessToken(user)
 	if err != nil {
-		log.Println("Login failed: Unable to generate JWT token")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
+	// reuse existing cookie if valid
+	if cookie, err := c.Request.Cookie("refresh_token"); err == nil {
+		if uid, ok, _ := services.IsRefreshTokenValid(cookie.Value); ok && uid == user.ID {
+			c.JSON(http.StatusOK, gin.H{
+				"token":      tokenString,
+				"expires_in": 15 * 60,
+				"message":    "Login successful",
+			})
+			return
+		}
+	}
+
+	// create new refresh token
+	refreshPlain, rtExpiry, err := services.GenerateAndStoreRefreshToken(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+		return
+	}
+	setRefreshCookie(c.Writer, refreshPlain, rtExpiry)
+
 	c.JSON(http.StatusOK, gin.H{
-		"token":   tokenString,
-		"message": "Login successful",
+		"token":      tokenString,
+		"expires_in": 15 * 60,
+		"message":    "Login successful",
 	})
+}
+
+// RefreshHandler için Swagger tanımı
+// @Summary Refresh access token
+// @Description Rotates refresh token and returns new access token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param refresh_token cookie string false "Refresh token (cookie)"
+// @Param refresh_token body string false "Refresh token (body) (for Swagger/testing)"
+// @Param X-Refresh-Token header string false "Refresh token (header) (for Swagger/testing)"
+// @Success 200 {object} map[string]interface{} "New access token and refresh cookie set"
+// @Failure 401 {object} map[string]interface{} "Invalid or missing refresh token"
+// @Failure 500 {object} map[string]interface{} "Server error"
+// @Router /svc/auth/refresh [post]
+func RefreshHandler(c *gin.Context) {
+	// 1) Try cookie
+	cookie, err := c.Request.Cookie("refresh_token")
+	var plain string
+	if err == nil {
+		plain = cookie.Value
+	}
+
+	// 2) Fallback to header (useful for Swagger / tooling)
+	if plain == "" {
+		plain = c.GetHeader("X-Refresh-Token")
+	}
+
+	// 3) Fallback to JSON body (useful for Swagger 'Try it out')
+	if plain == "" {
+		var body struct {
+			RefreshToken string `json:"refresh_token"`
+		}
+		if err := c.ShouldBindJSON(&body); err == nil && body.RefreshToken != "" {
+			plain = body.RefreshToken
+		}
+	}
+
+	if plain == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing refresh token"})
+		return
+	}
+
+	newPlain, userID, err := services.VerifyAndRotateRefreshToken(plain)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
+		return
+	}
+
+	user, err := services.GetUserByID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "user lookup failed"})
+		return
+	}
+
+	accessToken, _, err := services.GenerateAccessToken(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "token generation failed"})
+		return
+	}
+
+	// set rotated refresh cookie
+	setRefreshCookie(c.Writer, newPlain, time.Now().Add(7*24*time.Hour))
+
+	c.JSON(http.StatusOK, gin.H{"token": accessToken, "expires_in": 15 * 60})
 }
 
 // SendVerificationEmailHandler sends a verification email to the user
@@ -412,4 +479,51 @@ func ResetPasswordHandler(c *gin.Context) {
 	_ = services.DeletePasswordResetToken(c.Request.Context(), token)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
+}
+
+// LogoutHandler için Swagger tanımı
+// @Summary Logout user
+// @Description Revokes refresh token and clears cookie
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Successfully logged out"
+// @Router /svc/auth/logout [post]
+func LogoutHandler(c *gin.Context) {
+	cookie, err := c.Request.Cookie("refresh_token")
+	if err == nil {
+		plain := cookie.Value
+		parts := strings.SplitN(plain, ":", 2)
+		if len(parts) == 2 {
+			_ = services.RevokeRefreshTokenByID(parts[0])
+		}
+	}
+	// clear cookie
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   os.Getenv("COOKIE_SECURE") != "false",
+		MaxAge:   -1,
+		Expires:  time.Unix(1, 0),
+	})
+	c.JSON(http.StatusOK, gin.H{"message": "Logged out"})
+}
+
+func setRefreshCookie(w http.ResponseWriter, plain string, expiry time.Time) {
+	cookieSecure := true
+	if os.Getenv("COOKIE_SECURE") == "false" {
+		cookieSecure = false
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    plain,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   cookieSecure,
+		SameSite: http.SameSiteStrictMode,
+		Expires:  expiry,
+		MaxAge:   int(expiry.Sub(time.Now()).Seconds()),
+	})
 }

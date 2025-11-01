@@ -2291,9 +2291,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Authenticates a user and returns a JWT token
+      description: Authenticates user with phone number and password
       parameters:
-      - description: User login credentials
+      - description: Phone login credentials
         in: body
         name: login
         required: true
@@ -2308,16 +2308,26 @@ paths:
             additionalProperties: true
             type: object
         "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
           description: Invalid credentials
           schema:
             additionalProperties: true
             type: object
-        "500":
-          description: Internal server error
+        "403":
+          description: Account locked
           schema:
             additionalProperties: true
             type: object
-      summary: User login
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login by phone
       tags:
       - Authentication
   /svc/auth/login-by-username:
@@ -2351,6 +2361,48 @@ paths:
             additionalProperties: true
             type: object
       summary: User login
+      tags:
+      - Authentication
+  /svc/auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Revokes refresh token and clears cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully logged out
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Logout user
+      tags:
+      - Authentication
+  /svc/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Rotates refresh token and returns new access token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New access token and refresh cookie set
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid or missing refresh token
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Refresh access token
       tags:
       - Authentication
   /svc/auth/request-password-reset:

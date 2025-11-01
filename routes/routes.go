@@ -3,6 +3,7 @@ package routes
 import (
 	"admin-panel/controllers"
 	"admin-panel/middlewares"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,10 +11,13 @@ import (
 // AuthRoutes defines routes for authentication
 func AuthRoutes(router *gin.Engine) {
 	auth := router.Group("/svc/auth")
+	auth.Use(middlewares.RateLimitMiddleware())
 	{
-		auth.POST("/login-by-username", middlewares.RateLimitMiddleware(), controllers.LoginByUsernameHandler)
-		auth.POST("/login-by-email", middlewares.RateLimitMiddleware(), controllers.LoginByEmailHandler)
-		auth.POST("/login-by-phone", middlewares.RateLimitMiddleware(), controllers.LoginByPhoneHandler)
+		auth.POST("/login-by-username", controllers.LoginByUsernameHandler)
+		auth.POST("/login-by-email", controllers.LoginByEmailHandler)
+		auth.POST("/login-by-phone", controllers.LoginByPhoneHandler)
+		auth.POST("/refresh", controllers.RefreshHandler)
+		auth.POST("/logout", controllers.LogoutHandler)
 		auth.GET("/verify", controllers.VerifyEmailHandler)
 		auth.POST("/send-verification/:userID", controllers.SendVerificationEmailHandler)
 		auth.POST("/request-password-reset", controllers.RequestPasswordResetHandler)
@@ -36,4 +40,12 @@ func MaintenanceRoutes(router *gin.Engine) {
 	{
 		settings.PUT("/", controllers.ToggleMaintenanceMode)
 	}
+}
+
+// Health check (k8s readiness / liveness)
+func HealthRoutes(router *gin.Engine) {
+	router.GET("/healthz", func(c *gin.Context) {
+		// Basit health check; DB/other servis check ekleyin
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
 }

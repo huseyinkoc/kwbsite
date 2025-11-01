@@ -10,6 +10,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// helper: strip sensitive fields
+func sanitizeUserForResponse(u *models.User) {
+	if u == nil {
+		return
+	}
+	u.Password = ""
+	// ek hassas alanlar varsa buraya ekleyin (e.g. tokens, reset codes)
+}
+
 // CreateUserHandler creates a new user
 // @Summary Create a new user
 // @Description Add a new user with roles and hashed password
@@ -41,6 +50,9 @@ func CreateUserHandler(c *gin.Context) {
 		return
 	}
 
+	// Normalize email/username
+	// user.Email = strings.TrimSpace(strings.ToLower(user.Email))
+
 	// Şifreyi hashle
 	hashedPassword, err := services.HashPassword(user.Password)
 	if err != nil {
@@ -59,6 +71,9 @@ func CreateUserHandler(c *gin.Context) {
 		return
 	}
 
+	// Dönerken hassas veriyi temizle
+	sanitizeUserForResponse(&user)
+
 	c.JSON(http.StatusOK, gin.H{"message": "User created successfully", "user": user})
 }
 
@@ -74,8 +89,12 @@ func GetAllUsersHandler(c *gin.Context) {
 	users, err := services.GetAllUsers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users"})
-		fmt.Println("Database error during user retrieval:", err)
 		return
+	}
+
+	// Her kullanıcının şifresini temizle
+	for i := range users {
+		users[i].Password = ""
 	}
 
 	c.JSON(http.StatusOK, users)
@@ -121,28 +140,47 @@ func UpdateUserHandler(c *gin.Context) {
 
 	// Roller güncelleniyorsa kontrol et
 	if roles, ok := update["roles"]; ok {
-		userRole, _ := c.Get("role")
-		if userRole != "admin" {
+		rolesIface, _ := c.Get("roles")
+		rolesCtx, _ := rolesIface.([]string)
+		isAdmin := false
+		for _, r := range rolesCtx {
+			if r == "admin" {
+				isAdmin = true
+				break
+			}
+		}
+		if !isAdmin {
 			c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to change roles"})
 			return
 		}
 		update["roles"] = roles
 	}
 
-	// FullName güncelleniyorsa
-	if name, ok := update["name"].(string); ok {
-		update["name"] = name
+	// Allowed update fields whitelist (prevent privilege escalation)
+	allowed := map[string]bool{
+		"name":       true,
+		"surname":    true,
+		"full_name":  true,
+		"password":   true,
+		"roles":      true, // already guarded above
+		"phone":      true,
+		"updated_at": true,
 	}
-	if surname, ok := update["surname"].(string); ok {
-		update["surname"] = surname
-	}
-	if name, nameOk := update["name"].(string); nameOk {
-		if surname, surnameOk := update["surname"].(string); surnameOk {
-			update["full_name"] = fmt.Sprintf("%s %s", name, surname)
+	filtered := map[string]interface{}{}
+	for k, v := range update {
+		if allowed[k] {
+			filtered[k] = v
 		}
 	}
 
-	_, err = services.UpdateUser(id, update)
+	// FullName güncelleniyorsa
+	if name, nameOk := filtered["name"].(string); nameOk {
+		if surname, surnameOk := filtered["surname"].(string); surnameOk {
+			filtered["full_name"] = fmt.Sprintf("%s %s", name, surname)
+		}
+	}
+
+	_, err = services.UpdateUser(id, filtered)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
 		return
